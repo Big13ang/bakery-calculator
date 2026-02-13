@@ -1,98 +1,117 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useState, useMemo } from 'react';
+import { View, Text, TextInput, ScrollView, SafeAreaView } from 'react-native';
+import { ChefHat, Droplets, Utensils, Zap } from 'lucide-react-native';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [flour, setFlour] = useState('500');
+  const [hydration, setHydration] = useState('70');
+  const [salt, setSalt] = useState('2');
+  const [yeast, setYeast] = useState('1');
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const calculations = useMemo(() => {
+    const f = parseFloat(flour) || 0;
+    const h = parseFloat(hydration) || 0;
+    const s = parseFloat(salt) || 0;
+    const y = parseFloat(yeast) || 0;
+
+    return {
+      water: (f * h) / 100,
+      salt: (f * s) / 100,
+      yeast: (f * y) / 100,
+      total: f + (f * h) / 100 + (f * s) / 100 + (f * y) / 100,
+    };
+  }, [flour, hydration, salt, yeast]);
+
+  return (
+    <SafeAreaView className="flex-1 bg-orange-50">
+      <ScrollView className="flex-1 p-6">
+        <View className="flex-row items-center mb-8">
+          <ChefHat size={32} color="#f97316" />
+          <Text className="text-3xl font-bold ml-3 text-orange-900">Bakery Calc</Text>
+        </View>
+
+        <View className="bg-white rounded-3xl p-6 shadow-sm mb-6">
+          <Text className="text-sm font-semibold text-gray-400 uppercase mb-4 tracking-wider">Inputs</Text>
+
+          <View className="mb-4">
+            <Text className="text-gray-600 mb-1 ml-1">Flour (g)</Text>
+            <TextInput
+              className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-lg font-medium"
+              value={flour}
+              onChangeText={setFlour}
+              keyboardType="numeric"
+              placeholder="500"
+            />
+          </View>
+
+          <View className="flex-row gap-4">
+            <View className="flex-1">
+              <Text className="text-gray-600 mb-1 ml-1">Hydration %</Text>
+              <TextInput
+                className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-lg font-medium"
+                value={hydration}
+                onChangeText={setHydration}
+                keyboardType="numeric"
+                placeholder="70"
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-600 mb-1 ml-1">Salt %</Text>
+              <TextInput
+                className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-lg font-medium"
+                value={salt}
+                onChangeText={setSalt}
+                keyboardType="numeric"
+                placeholder="2"
+              />
+            </View>
+          </View>
+
+          <View className="mt-4">
+            <Text className="text-gray-600 mb-1 ml-1">Yeast %</Text>
+            <TextInput
+              className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-lg font-medium"
+              value={yeast}
+              onChangeText={setYeast}
+              keyboardType="numeric"
+              placeholder="1"
+            />
+          </View>
+        </View>
+
+        <View className="bg-orange-600 rounded-3xl p-6 shadow-md mb-6">
+          <Text className="text-sm font-semibold text-orange-200 uppercase mb-4 tracking-wider">Results</Text>
+
+          <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-orange-500/30">
+            <View className="flex-row items-center">
+              <Droplets size={20} color="#ffedd5" />
+              <Text className="text-orange-50 text-lg ml-2">Water</Text>
+            </View>
+            <Text className="text-white text-2xl font-bold">{calculations.water.toFixed(1)}g</Text>
+          </View>
+
+          <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-orange-500/30">
+            <View className="flex-row items-center">
+              <Utensils size={20} color="#ffedd5" />
+              <Text className="text-orange-50 text-lg ml-2">Salt</Text>
+            </View>
+            <Text className="text-white text-2xl font-bold">{calculations.salt.toFixed(1)}g</Text>
+          </View>
+
+          <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-orange-500/30">
+            <View className="flex-row items-center">
+              <Zap size={20} color="#ffedd5" />
+              <Text className="text-orange-50 text-lg ml-2">Yeast</Text>
+            </View>
+            <Text className="text-white text-2xl font-bold">{calculations.yeast.toFixed(1)}g</Text>
+          </View>
+
+          <View className="flex-row items-center justify-between pt-2">
+            <Text className="text-orange-100 text-lg">Total Dough</Text>
+            <Text className="text-white text-3xl font-black">{calculations.total.toFixed(0)}g</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
