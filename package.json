@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:android": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd android && ./gradlew assembleRelease",
+    "build:aab": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd android && ./gradlew bundleRelease",
     "build:ios": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd ios && xcodebuild -scheme bakery-calculator -configuration Release build"
   },
   "dependencies": {
