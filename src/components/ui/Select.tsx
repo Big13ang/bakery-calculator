@@ -1,0 +1,100 @@
+import { useState } from 'react';
+import { FlatList, Modal, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { cn } from '../../utils';
+import { Icons } from './Icons';
+import { Typography } from './Typography';
+
+interface Option {
+    label: string;
+    value: string;
+}
+
+interface SelectProps {
+    label?: string;
+    value: string;
+    options: Option[] | string[];
+    onChange: (value: string) => void;
+    placeholder?: string;
+    className?: string;
+}
+
+export function Select({ label, value, options, onChange, placeholder = 'انتخاب کنید', className }: SelectProps) {
+    const [visible, setVisible] = useState(false);
+
+    const normalizedOptions: Option[] = options.map(opt =>
+        typeof opt === 'string' ? { label: opt, value: opt } : opt
+    );
+
+    const selectedOption = normalizedOptions.find(opt => opt.value === value);
+
+    return (
+        <View className={cn("gap-2", className)}>
+            {label && (
+                <Typography variant="micro" className="opacity-80 pr-1 text-left">
+                    {label}
+                </Typography>
+            )}
+            <TouchableOpacity
+                onPress={() => setVisible(true)}
+                className="flex-row items-center justify-between w-full h-[52px] p-4 rounded-2xl bg-bakery-soft border border-bakery-border"
+            >
+                <Typography variant="body" className="text-bakery-text text-left flex-1 font-bold">
+                    {selectedOption?.label || (value ? value : placeholder)}
+                </Typography>
+                <Icons.ChevronDown size={20} color="#4A3728" className="opacity-50" />
+            </TouchableOpacity>
+
+            <Modal
+                transparent
+                visible={visible}
+                animationType="fade"
+                onRequestClose={() => setVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={() => setVisible(false)}>
+                    <View className="flex-1 bg-black/50 justify-end">
+                        <TouchableWithoutFeedback>
+                            <View className="bg-[#FDF8F1] w-full rounded-t-3xl border-t border-[#D9C4A9] shadow-2xl pb-8 max-h-[70%]">
+                                <View className="items-center pt-4 pb-6">
+                                    <View className="w-12 h-1.5 bg-[#D9C4A9]/50 rounded-full mb-6" />
+                                    <Typography variant="h3" className="text-bakery-text">{label || placeholder}</Typography>
+                                </View>
+
+                                <FlatList
+                                    data={normalizedOptions}
+                                    keyExtractor={(item) => item.value}
+                                    className="px-4"
+                                    showsVerticalScrollIndicator={false}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                onChange(item.value);
+                                                setVisible(false);
+                                            }}
+                                            className={cn(
+                                                "p-4 border-b border-[#D9C4A9]/30 flex-row items-center justify-start gap-3 active:bg-[#F9F1E5] transition-colors rounded-xl mb-1",
+                                                value === item.value ? "bg-[#F9F1E5]" : ""
+                                            )}
+                                        >
+                                            <View className={cn(
+                                                "w-2 h-2 rounded-full",
+                                                value === item.value ? "bg-[#D97706]" : "bg-transparent border border-[#D9C4A9]"
+                                            )} />
+                                            <Typography variant="body" className={cn(
+                                                "text-left flex-1",
+                                                value === item.value ? "font-black text-[#D97706]" : "font-medium text-[#4A3728]"
+                                            )}>
+                                                {item.label}
+                                            </Typography>
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+        </View>
+    );
+}
+
+export default Select;

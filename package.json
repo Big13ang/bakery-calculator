@@ -14,12 +14,14 @@
     "build:ios": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd ios && xcodebuild -scheme bakery-calculator -configuration Release build"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
+    "@expo-google-fonts/lalezar": "^0.4.1",
+    "@expo-google-fonts/vazirmatn": "^0.4.1",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "babel-plugin-inline-import": "^3.0.0",
-    "drizzle-orm": "^0.45.1",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "0.39.1",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-drizzle-studio-plugin": "^0.2.1",
@@ -45,12 +47,13 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.5.1"
+    "react-native-worklets": "0.5.1",
+    "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
     "autoprefixer": "^10.4.24",
-    "drizzle-kit": "^0.31.9",
+    "drizzle-kit": "0.31.9",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "postcss": "^8.5.6",
