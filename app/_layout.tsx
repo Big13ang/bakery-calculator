@@ -8,8 +8,8 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { Suspense, useEffect } from 'react';
-import { ActivityIndicator, I18nManager } from 'react-native';
-import 'react-native-reanimated';
+import { ActivityIndicator, I18nManager, LogBox } from 'react-native';
+
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
 
@@ -20,6 +20,12 @@ import { SQLiteProvider } from 'expo-sqlite';
 // Force RTL for Persian support
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
+
+// Configure LogBox to ignore Reanimated warnings
+LogBox.ignoreLogs([
+  '[Reanimated] Reading from `value` during component render',
+  '[Reanimated] Writing to `value` during component render',
+]);
 
 export const DATABASE_NAME = 'tasks';
 
