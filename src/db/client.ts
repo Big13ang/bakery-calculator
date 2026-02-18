@@ -29,17 +29,42 @@ export const runMigrations = async () => {
 };
 
 const seedUnits = async () => {
-    const existing = await db.select().from(schema.units).limit(1);
-    if (existing.length === 0) {
-        console.log("Seeding units...");
-        await db.insert(schema.units).values([
-            { id: crypto.randomUUID(), name: 'گرم', symbol: 'g' },
-            { id: crypto.randomUUID(), name: 'کیلوگرم', symbol: 'kg' },
-            { id: crypto.randomUUID(), name: 'عدد', symbol: 'pcs' },
-            { id: crypto.randomUUID(), name: 'قاشق چای‌خوری', symbol: 'tsp' },
-            { id: crypto.randomUUID(), name: 'قاشق غذاخوری', symbol: 'tbsp' },
-            { id: crypto.randomUUID(), name: 'لیوان', symbol: 'cup' },
-        ]);
+    const DEFAULT_UNITS = [
+        { name: 'گرم', symbol: 'g' },
+        { name: 'کیلوگرم', symbol: 'kg' },
+        { name: 'میلی‌گرم', symbol: 'mg' },
+        { name: 'مثقال', symbol: 'مثقال' },
+        { name: 'لیتر', symbol: 'l' },
+        { name: 'میلی‌لیتر', symbol: 'ml' },
+        { name: 'سی‌سی', symbol: 'cc' },
+        { name: 'پیمانه', symbol: 'cup' },
+        { name: 'قاشق غذاخوری', symbol: 'tbsp' },
+        { name: 'قاشق چای‌خوری', symbol: 'tsp' },
+        { name: 'عدد', symbol: 'pcs' },
+        { name: 'بسته', symbol: 'pkg' },
+        { name: 'جعبه', symbol: 'box' },
+        { name: 'کارتن', symbol: 'ctn' },
+        { name: 'سینی', symbol: 'tray' },
+        { name: 'ورق', symbol: 'sheet' },
+    ];
+
+    console.log("Checking for missing units...");
+    const existing = await db.select().from(schema.units);
+    const existingNames = new Set(existing.map(u => u.name));
+
+    const toInsert = DEFAULT_UNITS.filter(u => !existingNames.has(u.name));
+
+    if (toInsert.length > 0) {
+        console.log(`Seeding ${toInsert.length} new units...`);
+        await db.insert(schema.units).values(
+            toInsert.map(u => ({
+                id: crypto.randomUUID(),
+                name: u.name,
+                symbol: u.symbol,
+            }))
+        );
         console.log("Units seeded.");
+    } else {
+        console.log("All default units already exist.");
     }
 };
