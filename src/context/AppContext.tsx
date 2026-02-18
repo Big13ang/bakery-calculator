@@ -1,6 +1,9 @@
-import SQLiteKVStore from 'expo-sqlite/kv-store';
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AppSettings, AppState, Ingredient, Recipe } from '../types';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { ingredientService } from '../services/IngredientService';
+import { recipeService } from '../services/RecipeService';
+import { settingsService } from '../services/SettingsService';
+import { unitService } from '../services/UnitService';
+import { AppSettings, Ingredient, NewIngredient, NewRecipe, Recipe, RecipeWithIngredients, Unit } from '../types';
 
 const DEFAULT_SETTINGS: AppSettings = {
     businessName: '',
@@ -8,93 +11,165 @@ const DEFAULT_SETTINGS: AppSettings = {
     subscriptionStatus: 'free',
 };
 
-const MOCK_INGREDIENTS: Ingredient[] = [
-    { id: 'i1', name: 'آرد نول ۱۸٪', unit: 'کیلوگرم', pricePerUnit: 72000, lastUpdated: Date.now() },
-    { id: 'i2', name: 'شکر دانه درشت', unit: 'کیلوگرم', pricePerUnit: 48000, lastUpdated: Date.now() },
-    { id: 'i3', name: 'کره گیاهی ویژه', unit: 'کیلوگرم', pricePerUnit: 290000, lastUpdated: Date.now() },
-];
-
-const MOCK_RECIPES: Recipe[] = [
-    {
-        id: 'r1',
-        name: 'کیک شکلاتی مخصوص',
-        ingredients: [
-            { ingredientId: 'i2', quantity: 0.25 },
-            { ingredientId: 'i1', quantity: 1.0 },
-        ],
-        outputCount: 10,
-        outputUnit: 'کیلوگرم',
-        profitMargin: 30,
-        currentCost: 1275000,
-        currentPrice: 1657500,
-        priceHistory: [
-            { timestamp: Date.now() - 86400000 * 20, costPerUnit: 100000, sellingPrice: 130000, reason: 'ثبت اولیه' },
-            { timestamp: Date.now() - 86400000 * 10, costPerUnit: 110000, sellingPrice: 143000, reason: 'تغییر قیمت آرد' },
-            { timestamp: Date.now(), costPerUnit: 127500, sellingPrice: 165750, reason: 'تغییر قیمت مواد' }
-        ]
-    }
-];
-
 interface AppContextType {
     ingredients: Ingredient[];
-    recipes: Recipe[];
+    recipes: RecipeWithIngredients[];
+    units: Unit[];
     settings: AppSettings;
-    setIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
-    setRecipes: React.Dispatch<React.SetStateAction<Recipe[]>>;
-    setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
-    calculateRecipeCosts: (recipe: Partial<Recipe>) => { costPerUnit: number; sellingPrice: number; totalCost: number };
+    isLoading: boolean;
+    refreshData: () => Promise<void>;
+
+    // Ingredient Actions
+    addIngredient: (data: NewIngredient) => Promise<void>;
+    updateIngredientPrice: (id: string, newPrice: number) => Promise<void>;
+    updateIngredient: (id: string, data: Partial<Ingredient>) => Promise<void>;
+    deleteIngredient: (id: string) => Promise<void>;
+
+    // Recipe Actions
+    addRecipe: (data: NewRecipe & { ingredients?: { ingredientId: string, quantity: number }[] }) => Promise<string>; // Returns ID
+    updateRecipe: (id: string, updates: Partial<Recipe>, newIngredients?: { ingredientId: string, quantity: number }[]) => Promise<void>;
+    addIngredientToRecipe: (recipeId: string, ingredientId: string, quantity: number) => Promise<void>;
+    recalculateRecipe: (recipeId: string) => Promise<void>;
+    deleteRecipe: (id: string) => Promise<void>;
+
+    // Calculation Helper - purely utility, or should likely be in Service?
+    // Keeping here for UI convenience but it should probably use Service logic to act on "draft" recipes
+    calculateDraftCosts: (recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => { costPerUnit: number; sellingPrice: number; totalCost: number; totalPrice: number; profit: number };
+
+    // Settings Actions
+    updateSetting: (key: string, value: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-    const [ingredients, setIngredients] = useState<Ingredient[]>(MOCK_INGREDIENTS);
-    const [recipes, setRecipes] = useState<Recipe[]>(MOCK_RECIPES);
+    const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+    const [recipes, setRecipes] = useState<RecipeWithIngredients[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
+    const refreshData = useCallback(async () => {
+        setIsLoading(true);
         try {
-            const saved = SQLiteKVStore.getItemSync('bakery_cost_pro_v21_final');
-            if (saved) {
-                const data: AppState = JSON.parse(saved);
-                if (data.ingredients) setIngredients(data.ingredients);
-                if (data.recipes) setRecipes(data.recipes);
-                if (data.settings) setSettings(data.settings);
-            }
-        } catch (e) {
-            console.error('Failed to load data', e);
+            const [fetchedIngredients, fetchedRecipes, fetchedUnits, fetchedSettings] = await Promise.all([
+                ingredientService.getAllIngredients(),
+                recipeService.getAllRecipes(),
+                unitService.getAllUnits(),
+                settingsService.getAppSettings()
+            ]);
+
+            setIngredients(fetchedIngredients);
+            setRecipes(fetchedRecipes);
+            setUnits(fetchedUnits);
+            setSettings(fetchedSettings);
+        } catch (error) {
+            console.error("Failed to refresh data", error);
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        try {
-            const data: AppState = { ingredients, recipes, settings };
-            SQLiteKVStore.setItemSync('bakery_cost_pro_v21_final', JSON.stringify(data));
-        } catch (e) {
-            console.error('Failed to save data', e);
-        }
-    }, [ingredients, recipes, settings]);
+        refreshData();
+    }, [refreshData]);
 
-    const calculateRecipeCosts = (recipe: Partial<Recipe>) => {
+    // --- Ingredient Actions ---
+
+    const addIngredient = async (data: NewIngredient) => {
+        await ingredientService.createIngredient(data);
+        await refreshData();
+    };
+
+    const updateIngredientPrice = async (id: string, newPrice: number) => {
+        await ingredientService.updatePrice(id, newPrice);
+        // Recalculate costs for all recipes using this ingredient
+        await recipeService.updateCostsForIngredient(id, 'تغییر قیمت ماده اولیه');
+        await refreshData();
+    };
+
+    const updateIngredient = async (id: string, data: Partial<Ingredient>) => {
+        await ingredientService.updateIngredient(id, data);
+        if (data.price !== undefined) {
+            await recipeService.updateCostsForIngredient(id, 'بروزرسانی اطلاعات ماده اولیه');
+        }
+        await refreshData();
+    };
+
+    const deleteIngredient = async (id: string) => {
+        await ingredientService.deleteIngredient(id);
+        await refreshData();
+    };
+
+    // --- Recipe Actions ---
+
+    const addRecipe = async (data: NewRecipe & { ingredients?: { ingredientId: string, quantity: number }[] }): Promise<string> => {
+        const newRecipe = await recipeService.createRecipe(data);
+        await refreshData();
+        return newRecipe.id;
+    };
+
+    const updateRecipe = async (id: string, updates: Partial<Recipe>, newIngredients?: { ingredientId: string, quantity: number }[]) => {
+        await recipeService.updateRecipe(id, updates, newIngredients);
+        await refreshData();
+    };
+
+    const addIngredientToRecipe = async (recipeId: string, ingredientId: string, quantity: number) => {
+        await recipeService.addIngredientToRecipe(recipeId, ingredientId, quantity);
+        await refreshData();
+    };
+
+    const recalculateRecipe = async (recipeId: string) => {
+        await recipeService.recalculateCosts(recipeId);
+        await refreshData();
+    };
+
+    const deleteRecipe = async (id: string) => {
+        await recipeService.deleteRecipe(id);
+        await refreshData();
+    };
+
+    // --- Settings Actions ---
+
+    const updateSetting = async (key: string, value: string) => {
+        await settingsService.setSetting(key, value);
+        setSettings(prev => ({ ...prev, [key]: value } as AppSettings));
+    };
+
+    // Helper for UI drafts
+    const calculateDraftCosts = (recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => {
         let totalCost = 0;
         recipe.ingredients?.forEach((ri) => {
             const ing = ingredients.find((i) => i.id === ri.ingredientId);
-            if (ing) totalCost += ri.quantity * ing.pricePerUnit;
+            if (ing) totalCost += ri.quantity * ing.price;
         });
         const costPerUnit = totalCost / (recipe.outputCount || 1);
-        const sellingPrice = costPerUnit * (1 + (recipe.profitMargin || 0) / 100);
-        return { costPerUnit, sellingPrice, totalCost };
+        const totalPrice = totalCost * (1 + (recipe.profitMargin || 0) / 100);
+        const sellingPrice = totalPrice / (recipe.outputCount || 1); // This is price per unit
+        const profit = totalPrice - totalCost;
+
+        return { costPerUnit, sellingPrice, totalCost, totalPrice, profit };
     };
 
     return (
         <AppContext.Provider value={{
             ingredients,
             recipes,
+            units,
             settings,
-            setIngredients,
-            setRecipes,
-            setSettings,
-            calculateRecipeCosts
+            isLoading,
+            refreshData,
+            addIngredient,
+            updateIngredientPrice,
+            updateIngredient,
+            deleteIngredient,
+            addRecipe,
+            updateRecipe,
+            addIngredientToRecipe,
+            recalculateRecipe,
+            deleteRecipe,
+            calculateDraftCosts,
+            updateSetting
         }}>
             {children}
         </AppContext.Provider>

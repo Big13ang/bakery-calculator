@@ -1,35 +1,13 @@
-export type Unit = 'کیلوگرم' | 'گرم' | 'عدد' | 'بسته' | 'قرص' | 'لیتر' | 'میلی‌لیتر';
+export * from '../db/schema';
+import { Ingredient, PriceHistory, Recipe, RecipeIngredient } from '../db/schema';
 
-export interface Ingredient {
-    id: string;
-    name: string;
-    unit: string; // Changed to string to be safe, or keep Unit if strict
-    pricePerUnit: number;
-    lastUpdated: number;
-}
-
-export interface RecipeIngredient {
-    ingredientId: string;
-    quantity: number;
-}
-
-export interface PriceHistoryRecord {
-    timestamp: number;
-    costPerUnit: number;
-    sellingPrice: number;
-    reason: string;
-}
-
-export interface Recipe {
-    id: string;
-    name: string;
+// Extended type for UI usage that includes the relation
+export interface RecipeWithIngredients extends Recipe {
     ingredients: RecipeIngredient[];
-    outputCount: number;
-    outputUnit: string;
-    profitMargin: number; // percentage
-    currentCost: number;
-    currentPrice: number;
-    priceHistory: PriceHistoryRecord[];
+    priceHistory: PriceHistory[];
+    totalCost?: number;
+    totalPrice?: number;
+    profit?: number;
 }
 
 export interface AppSettings {
@@ -40,7 +18,7 @@ export interface AppSettings {
 
 export interface AppState {
     ingredients: Ingredient[];
-    recipes: Recipe[];
+    recipes: RecipeWithIngredients[];
     settings?: AppSettings;
 }
 

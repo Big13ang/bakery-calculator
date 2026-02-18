@@ -7,7 +7,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { ActivityIndicator, I18nManager, LogBox } from 'react-native';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -27,13 +27,17 @@ LogBox.ignoreLogs([
   '[Reanimated] Writing to `value` during component render',
 ]);
 
-export const DATABASE_NAME = 'tasks';
+export const DATABASE_NAME = 'bakery_app.db';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 SplashScreen.preventAutoHideAsync();
+
+import { runMigrations } from '@/db/client';
+
+// ... (existing imports)
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -44,17 +48,29 @@ export default function RootLayout() {
     'Vazirmatn-Bold': Vazirmatn_700Bold,
   });
 
+  const [dbReady, setDbReady] = useState(false);
+
   useEffect(() => {
     if (fontError) throw fontError;
   }, [fontError]);
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+    async function prepare() {
+      try {
+        await runMigrations();
+        setDbReady(true);
+      } catch (e) {
+        console.error("Migration failed", e);
+      } finally {
+        if (fontsLoaded || fontError) {
+          SplashScreen.hideAsync();
+        }
+      }
     }
+    prepare();
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !dbReady) {
     return null;
   }
 

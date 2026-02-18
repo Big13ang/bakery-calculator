@@ -19,7 +19,7 @@ const statusMap = {
 };
 
 export const SettingsScreen = ({ onNavigate }: SettingsScreenProps) => {
-    const { settings, setSettings } = useApp();
+    const { settings, updateSetting } = useApp();
 
     return (
         <Screen className="p-4 pt-8 pb-32">
@@ -55,13 +55,13 @@ export const SettingsScreen = ({ onNavigate }: SettingsScreenProps) => {
                             label="نام کسب و کار"
                             placeholder="مثال: نانوایی برکت"
                             value={settings.businessName}
-                            onChangeText={text => setSettings({ ...settings, businessName: text })}
+                            onChangeText={text => updateSetting('businessName', text)}
                         />
                         <Input
                             label="نام مالک کسب و کار"
                             placeholder="مثال: محمد محمدی"
                             value={settings.ownerName}
-                            onChangeText={text => setSettings({ ...settings, ownerName: text })}
+                            onChangeText={text => updateSetting('ownerName', text)}
                         />
                     </View>
                 </Card>

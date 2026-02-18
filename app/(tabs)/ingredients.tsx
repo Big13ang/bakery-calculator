@@ -7,6 +7,7 @@ export default function IngredientsRoute() {
         <IngredientsScreen
             onBack={() => router.push('/')}
             onAdd={() => router.push('/add-ingredient')}
+            onEdit={(id) => router.push(`/edit-ingredient/${id}` as any)}
         />
     );
 }

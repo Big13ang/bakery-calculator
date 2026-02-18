@@ -9,22 +9,20 @@ import { Input } from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { Typography } from '../components/ui/Typography';
 import { useApp } from '../context/AppContext';
-import { Recipe, RecipeIngredient } from '../types';
-import { formatPrice, generateId } from '../utils';
+import { RecipeIngredient } from '../types';
+import { formatPrice } from '../utils';
 
 interface RecipeFormScreenProps {
     onBack: () => void;
     editRecipeId?: string | null;
 }
 
-const UNITS = ['کیلوگرم', 'گرم', 'عدد', 'بسته', 'قرص', 'لیتر', 'میلی‌لیتر'];
-
 export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps) => {
-    const { ingredients, recipes, setRecipes, calculateRecipeCosts } = useApp();
+    const { ingredients, recipes, addRecipe, updateRecipe, calculateDraftCosts, units } = useApp();
 
     const [name, setName] = useState('');
     const [outputCount, setOutputCount] = useState('1');
-    const [outputUnit, setOutputUnit] = useState(UNITS[0]);
+    const [outputUnitId, setOutputUnitId] = useState('');
     const [profitMargin, setProfitMargin] = useState('30');
     const [selectedIngredients, setSelectedIngredients] = useState<RecipeIngredient[]>([]);
 
@@ -38,54 +36,40 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
             if (r) {
                 setName(r.name);
                 setOutputCount(r.outputCount.toString());
-                setOutputUnit(r.outputUnit);
+                setOutputUnitId(r.outputUnitId || '');
                 setProfitMargin(r.profitMargin.toString());
-                setSelectedIngredients(r.ingredients);
+                setSelectedIngredients(r.ingredients as any); // Cast for simplicity in draft
             }
         }
     }, [editRecipeId, recipes]);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!name || selectedIngredients.length === 0) return;
         const out = parseFloat(outputCount) || 1;
         const prof = parseFloat(profitMargin) || 0;
 
-        // Calculate costs
-        const temp: Partial<Recipe> = { ingredients: selectedIngredients, outputCount: out, profitMargin: prof };
-        const { costPerUnit, sellingPrice, totalCost } = calculateRecipeCosts(temp);
-
         if (editRecipeId) {
-            setRecipes(prev => prev.map(r => r.id === editRecipeId ? {
-                ...r,
+            await updateRecipe(editRecipeId, {
                 name,
-                ingredients: selectedIngredients,
                 outputCount: out,
-                outputUnit,
+                outputUnitId,
                 profitMargin: prof,
-                currentCost: totalCost,
-                currentPrice: sellingPrice * out,
-                priceHistory: [...r.priceHistory, { timestamp: Date.now(), costPerUnit, sellingPrice, reason: 'ویرایش دستور پخت' }]
-            } : r));
+            }, selectedIngredients.map(i => ({ ingredientId: i.ingredientId, quantity: i.quantity })));
         } else {
-            const newRecipe: Recipe = {
-                id: generateId(),
+            await addRecipe({
                 name,
-                ingredients: selectedIngredients,
                 outputCount: out,
-                outputUnit,
+                outputUnitId,
                 profitMargin: prof,
-                currentCost: totalCost,
-                currentPrice: sellingPrice * out,
-                priceHistory: [{ timestamp: Date.now(), costPerUnit, sellingPrice, reason: 'ثبت اولیه' }]
-            };
-            setRecipes(prev => [...prev, newRecipe]);
+                ingredients: selectedIngredients.map(i => ({ ingredientId: i.ingredientId, quantity: i.quantity })),
+            } as any);
         }
         onBack();
     };
 
     const addIngredient = () => {
         if (!currentIngId || !currentQty) return;
-        setSelectedIngredients([...selectedIngredients, { ingredientId: currentIngId, quantity: parseFloat(currentQty) || 0 }]);
+        setSelectedIngredients([...selectedIngredients, { ingredientId: currentIngId, quantity: parseFloat(currentQty) || 0 } as any]);
         setCurrentIngId('');
         setCurrentQty('');
     };
@@ -94,7 +78,7 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
         setSelectedIngredients(prev => prev.filter((_, i) => i !== index));
     };
 
-    const summary = calculateRecipeCosts({ ingredients: selectedIngredients, outputCount: parseFloat(outputCount) || 1, profitMargin: parseFloat(profitMargin) || 0 });
+    const summary = calculateDraftCosts({ ingredients: selectedIngredients, outputCount: parseFloat(outputCount) || 1, profitMargin: parseFloat(profitMargin) || 0 });
 
     return (
         <Screen className="p-4 pt-1">
@@ -115,9 +99,9 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                         <View className="flex-1 gap-2">
                             <Select
                                 label="واحد"
-                                value={outputUnit}
-                                options={UNITS}
-                                onChange={(val: string) => setOutputUnit(val)}
+                                value={outputUnitId}
+                                options={units.map(u => ({ label: u.name, value: u.id }))}
+                                onChange={(val: string) => setOutputUnitId(val)}
                                 placeholder="انتخاب"
                             />
                         </View>
@@ -133,12 +117,15 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                     {/* Ingredient Selector Area */}
                     <View className="gap-3">
                         <Select
-                            label="انتخاب ماده از انبار"
+                            label="انتخاب ماده اولیه"
                             value={currentIngId}
-                            options={ingredients.map(ing => ({
-                                label: `${ing.name} (${ing.unit})`,
-                                value: ing.id
-                            }))}
+                            options={ingredients.map(ing => {
+                                const u = units.find(unit => unit.id === ing.unitId);
+                                return {
+                                    label: `${ing.name} (${u?.name || '-'})`,
+                                    value: ing.id
+                                };
+                            })}
                             onChange={(val: string) => setCurrentIngId(val)}
                             placeholder="انتخاب ماده..."
                         />
@@ -165,7 +152,7 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                                 <View key={idx} className="flex-row justify-between items-center bg-bakery-soft p-4 rounded-xl border border-bakery-border">
                                     <Typography variant="caption" className="font-black">{ing?.name}</Typography>
                                     <View className="flex-row items-center gap-3">
-                                        <Typography variant="micro" className="opacity-80">{item.quantity} {ing?.unit}</Typography>
+                                        <Typography variant="micro" className="opacity-80">{item.quantity} {units.find(u => u.id === ing?.unitId)?.name}</Typography>
                                         <TouchableOpacity onPress={() => removeIngredient(idx)} className="p-2 bg-red-100 rounded-lg">
                                             <Icons.Trash size={14} color="#7C2D12" />
                                         </TouchableOpacity>
@@ -184,10 +171,11 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                         </View>
                         <View className="gap-2.5">
                             <View className="flex-row justify-between"><Typography variant="micro" className="opacity-70">هزینه کل مواد اولیه:</Typography><Typography variant="micro" className="font-black">{formatPrice(summary.totalCost)} تومان</Typography></View>
-                            <View className="flex-row justify-between"><Typography variant="micro" className="opacity-70">قیمت تمام شده هر {outputUnit}:</Typography><Typography variant="micro" className="font-black">{formatPrice(summary.costPerUnit)} تومان</Typography></View>
-                            <View className="flex-row justify-between"><Typography variant="micro" className="text-bakery-accent">قیمت فروش هر {outputUnit} ({profitMargin}%):</Typography><Typography variant="micro" className="text-bakery-accent font-black">{formatPrice(summary.sellingPrice)} تومان</Typography></View>
+                            <View className="flex-row justify-between"><Typography variant="micro" className="opacity-70">قیمت تمام شده هر {units.find(u => u.id === outputUnitId)?.name || '-'}:</Typography><Typography variant="micro" className="font-black">{formatPrice(summary.costPerUnit)} تومان</Typography></View>
+                            <View className="flex-row justify-between"><Typography variant="micro" className="text-bakery-accent/80">قیمت فروش هر {units.find(u => u.id === outputUnitId)?.name || '-'}:</Typography><Typography variant="micro" className="text-bakery-accent/80 font-black">{formatPrice(summary.sellingPrice)} تومان</Typography></View>
                             <View className="h-px bg-bakery-border opacity-30 my-1" />
-                            <View className="flex-row justify-between"><Typography variant="body" className="uppercase font-black">قیمت فروش کل:</Typography><Typography variant="body" className="font-black">{formatPrice(summary.sellingPrice * (parseFloat(outputCount) || 1))} تومان</Typography></View>
+                            <View className="flex-row justify-between"><Typography variant="body" className="uppercase font-black">قیمت فروش کل:</Typography><Typography variant="body" className="font-black">{formatPrice(summary.totalPrice)} تومان</Typography></View>
+                            <View className="flex-row justify-between bg-bakery-accent/5 p-2 rounded-lg border border-bakery-accent/10"><Typography variant="body" className="text-bakery-accent font-black">سود خالص کل:</Typography><Typography variant="body" className="text-bakery-accent font-black">{formatPrice(summary.profit)} تومان</Typography></View>
                         </View>
                     </Card>
                 )}

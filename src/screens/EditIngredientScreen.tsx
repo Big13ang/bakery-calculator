@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -7,28 +7,45 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { useApp } from '../context/AppContext';
-import { NewIngredient } from '../types';
+import { Ingredient } from '../types';
 
-interface AddIngredientScreenProps {
+interface EditIngredientScreenProps {
+    ingredientId: string;
     onBack: () => void;
 }
 
-export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
-    const { addIngredient, units } = useApp();
+export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScreenProps) => {
+    const { updateIngredient, ingredients, units } = useApp();
     const [name, setName] = useState('');
     const [unitId, setUnitId] = useState('');
     const [price, setPrice] = useState('');
 
+    useEffect(() => {
+        const ingredient = ingredients.find(i => i.id === ingredientId);
+        if (ingredient) {
+            setName(ingredient.name);
+            setUnitId(ingredient.unitId);
+            setPrice(ingredient.price.toString());
+        }
+    }, [ingredientId, ingredients]);
+
     const handleSubmit = async () => {
         if (!name || !price || !unitId) return;
         const p = parseFloat(price) || 0;
-        await addIngredient({ name, unitId, price: p } as NewIngredient);
+
+        const updates: Partial<Ingredient> = {
+            name,
+            unitId,
+            price: p
+        };
+
+        await updateIngredient(ingredientId, updates);
         onBack();
     };
 
     return (
         <Screen>
-            <Header title="ثبت ماده اولیه جدید" onBack={onBack} />
+            <Header title="ویرایش ماده اولیه" onBack={onBack} />
 
             <View className="px-4 pb-24 gap-4">
                 <Card className="gap-5 p-5">
@@ -65,7 +82,7 @@ export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
                 <Button
                     variant="primary"
                     size="lg"
-                    label="ذخیره ماده اولیه"
+                    label="به‌روزرسانی ماده اولیه"
                     onPress={handleSubmit}
                     disabled={!name || !price || !unitId}
                     className={!name || !price || !unitId ? 'opacity-50' : ''}
