@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -19,12 +19,16 @@ export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
     const [unitId, setUnitId] = useState('');
     const [price, setPrice] = useState('');
 
-    const handleSubmit = async () => {
+    const unitOptions = useMemo(() =>
+        units.map(u => ({ label: u.name, value: u.id })),
+        [units]);
+
+    const handleSubmit = useCallback(async () => {
         if (!name || !price || !unitId) return;
         const p = parseFloat(price) || 0;
         await addIngredient({ name, unitId, price: p } as NewIngredient);
         onBack();
-    };
+    }, [name, price, unitId, addIngredient, onBack]);
 
     return (
         <Screen>
@@ -44,7 +48,7 @@ export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
                             <Select
                                 label="واحد"
                                 value={unitId}
-                                options={units.map(u => ({ label: u.name, value: u.id }))}
+                                options={unitOptions}
                                 onChange={setUnitId}
                                 placeholder="انتخاب"
                             />

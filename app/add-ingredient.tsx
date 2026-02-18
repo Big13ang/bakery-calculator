@@ -5,7 +5,7 @@ export default function AddIngredientRoute() {
     const router = useRouter();
     return (
         <AddIngredientScreen
-            onBack={() => router.back()}
+            onBack={() => router.replace('/ingredients')}
         />
     );
 }

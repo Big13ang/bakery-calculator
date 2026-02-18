@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { Text, TextProps } from 'react-native';
 import { cn } from '../../utils';
 
@@ -7,7 +8,7 @@ interface TypographyProps extends TextProps {
     className?: string;
 }
 
-export const Typography = ({
+export const Typography = memo(({
     variant = 'body',
     weight = 'regular',
     className,
@@ -35,4 +36,4 @@ export const Typography = ({
             {children}
         </Text>
     );
-};
+});

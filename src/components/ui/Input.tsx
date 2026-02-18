@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { TextInput, TextInputProps, View } from 'react-native';
 import { cn } from '../../utils';
 import { Typography } from './Typography';
@@ -7,11 +8,11 @@ interface InputProps extends TextInputProps {
     containerClassName?: string;
 }
 
-export const Input = ({ label, containerClassName, className, ...props }: InputProps) => {
+export const Input = memo(({ label, containerClassName, className, ...props }: InputProps) => {
     return (
-        <View className={cn("gap-2", containerClassName)}>
+        <View className={cn("", containerClassName)}>
             {label && (
-                <Typography variant="micro" className="opacity-80 pr-1 text-left">
+                <Typography variant="micro" className="opacity-80 pr-1 text-left mb-2">
                     {label}
                 </Typography>
             )}
@@ -25,4 +26,4 @@ export const Input = ({ label, containerClassName, className, ...props }: InputP
             />
         </View>
     );
-};
+});

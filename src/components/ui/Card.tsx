@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { View, ViewProps } from 'react-native';
 import { cn } from '../../utils';
 
@@ -6,7 +7,7 @@ interface CardProps extends ViewProps {
     variant?: 'default' | 'flat';
 }
 
-export const Card = ({ className, variant = 'default', children, ...props }: CardProps) => {
+export const Card = memo(({ className, variant = 'default', children, ...props }: CardProps) => {
     return (
         <View
             className={cn(
@@ -19,4 +20,4 @@ export const Card = ({ className, variant = 'default', children, ...props }: Car
             {children}
         </View>
     );
-};
+});

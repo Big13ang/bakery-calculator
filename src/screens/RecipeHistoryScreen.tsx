@@ -4,16 +4,10 @@ import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
+import { PriceChart } from '../components/ui/PriceChart';
 import { Typography } from '../components/ui/Typography';
 import { useApp } from '../context/AppContext';
-import { formatDate, formatPrice } from '../utils';
-
-// Note: Recharts is Web only. For RN we need react-native-chart-kit or similar.
-// Since user didn't specify a chart lib and I can't install big ones easily without verifying compatibility,
-// I will implement a "Visual Bar" representation for now to keep it "Clean" and dependency-light, or just the list.
-// The web version had a LineChart. I'll focus on the data list for "Exact Design" information content
-// and maybe a simple SVG sparkline if I have time. 
-// For now, list is safer.
+import { cn, formatDate, formatPrice } from '../utils';
 
 interface RecipeHistoryScreenProps {
     recipeId: string;
@@ -25,6 +19,26 @@ export const RecipeHistoryScreen = ({ recipeId, onBack }: RecipeHistoryScreenPro
     const recipe = recipes.find(r => r.id === recipeId);
 
     if (!recipe) return null;
+
+    const chartData = recipe.priceHistory.map(record => {
+        const d = new Date(record.createdAt);
+        // User requested exact format 29/11/1404
+        const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', {
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric'
+        }).formatToParts(d);
+
+        const day = parts.find(p => p.type === 'day')?.value;
+        const month = parts.find(p => p.type === 'month')?.value;
+        const year = parts.find(p => p.type === 'year')?.value;
+
+        return {
+            date: d,
+            formattedDate: `${day}/${month}/${year}`,
+            price: record.newPrice
+        };
+    });
 
     return (
         <Screen>
@@ -42,21 +56,8 @@ export const RecipeHistoryScreen = ({ recipeId, onBack }: RecipeHistoryScreenPro
                         <Card className="p-5 overflow-hidden rounded-2xl gap-4">
                             <Typography variant="micro" className="opacity-60 uppercase text-[10px]">نمودار نوسانات قیمت فروش (هر {units.find(u => u.id === recipe.outputUnitId)?.name || '-'})</Typography>
 
-                            <View className="h-32 flex-row items-end justify-between px-2">
-                                {recipe.priceHistory.map((record, i) => {
-                                    const maxPrice = Math.max(...recipe.priceHistory.map(r => r.newPrice), 1);
-                                    const height = (record.newPrice / maxPrice) * 100;
-                                    return (
-                                        <View key={i} className="items-center flex-1">
-                                            <View
-                                                className="w-full bg-bakery-accent/20 rounded-t-sm"
-                                                style={{ height: `${height}%`, maxWidth: 12 }}
-                                            >
-                                                <View className="absolute top-0 left-0 right-0 h-1 bg-bakery-accent rounded-full" />
-                                            </View>
-                                        </View>
-                                    );
-                                })}
+                            <View className="py-4 items-center">
+                                <PriceChart data={chartData} height={160} />
                             </View>
                             <View className="h-px bg-bakery-border opacity-20" />
                         </Card>
@@ -69,12 +70,22 @@ export const RecipeHistoryScreen = ({ recipeId, onBack }: RecipeHistoryScreenPro
                                 const prevRecord = recipe.priceHistory[chronologicalIndex - 1];
                                 const inflationRate = prevRecord ? ((record.newPrice - prevRecord.newPrice) / prevRecord.newPrice) * 100 : 0;
 
+                                const isCostRecalc = record.reason === 'Cost Recalculation';
+
                                 return (
                                     <Card key={idx} className="p-5 flex-col gap-3 rounded-2xl">
                                         <View className="flex-row justify-between items-center">
                                             <View className="flex-row items-center gap-2">
-                                                <View className="bg-bakery-soft px-2 py-1 rounded-lg border border-bakery-border">
-                                                    <Typography variant="micro" className="text-[10px]">{record.reason}</Typography>
+                                                <View className={cn(
+                                                    "px-2 py-1 rounded-lg border",
+                                                    isCostRecalc ? "bg-[#FFF7ED] border-[#FED7AA]" : "bg-bakery-soft border-bakery-border"
+                                                )}>
+                                                    <Typography variant="micro" className={cn(
+                                                        "text-[10px]",
+                                                        isCostRecalc ? "text-[#9A3412] font-black" : "text-bakery-text"
+                                                    )}>
+                                                        {isCostRecalc ? "محاسبه مجدد هزینه" : record.reason}
+                                                    </Typography>
                                                 </View>
                                                 {prevRecord && (
                                                     <Badge

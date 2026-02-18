@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { FlatList, Modal, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { cn } from '../../utils';
 import { Icons } from './Icons';
@@ -18,7 +18,7 @@ interface SelectProps {
     className?: string;
 }
 
-export function Select({ label, value, options, onChange, placeholder = 'انتخاب کنید', className }: SelectProps) {
+export const Select = memo(({ label, value, options, onChange, placeholder = 'انتخاب کنید', className }: SelectProps) => {
     const [visible, setVisible] = useState(false);
 
     const normalizedOptions: Option[] = options.map(opt =>
@@ -71,7 +71,7 @@ export function Select({ label, value, options, onChange, placeholder = 'انت�
                                                 setVisible(false);
                                             }}
                                             className={cn(
-                                                "p-4 border-b border-[#D9C4A9]/30 flex-row items-center justify-start gap-3 active:bg-[#F9F1E5] transition-colors rounded-xl mb-1",
+                                                "p-4 border-b border-[#D9C4A9]/30 flex-row items-center justify-start gap-3 active:bg-[#F9F1E5] rounded-xl mb-1",
                                                 value === item.value ? "bg-[#F9F1E5]" : ""
                                             )}
                                         >
@@ -95,6 +95,6 @@ export function Select({ label, value, options, onChange, placeholder = 'انت�
             </Modal>
         </View>
     );
-}
+});
 
 export default Select;

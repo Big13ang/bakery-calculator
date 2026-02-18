@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Platform, TouchableOpacity, UIManager, View } from 'react-native';
-import { DeleteConfirmation } from '../components/common/DeleteConfirmation';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 import { EmptyState } from '../components/common/EmptyState';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -170,7 +170,7 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                 </View>
             )}
 
-            <DeleteConfirmation
+            <ConfirmModal
                 visible={!!idToDelete}
                 onCancel={() => setIdToDelete(null)}
                 onConfirm={async () => {
@@ -179,6 +179,10 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                         setIdToDelete(null);
                     }
                 }}
+                title="حذف دستور پخت"
+                description="آیا از حذف این دستور پخت مطمئن هستید؟ تمام تاریخچه قیمت‌های مرتبط نیز حذف خواهد شد."
+                confirmLabel="بله، حذف شود"
+                variant="danger"
             />
         </Screen>
     );

@@ -1,24 +1,35 @@
 import React from 'react';
 import { Modal, Pressable, View } from 'react-native';
+import { cn } from '../../utils';
 import { Button } from '../ui/Button';
 import { Icons } from '../ui/Icons';
 import { Typography } from '../ui/Typography';
 
-interface DeleteConfirmationProps {
+interface ConfirmModalProps {
     visible: boolean;
     onCancel: () => void;
     onConfirm: () => void;
-    title?: string;
-    description?: string;
+    title: string;
+    description: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: 'danger' | 'primary';
+    icon?: keyof typeof Icons;
 }
 
-export const DeleteConfirmation = ({
+export const ConfirmModal = ({
     visible,
     onCancel,
     onConfirm,
-    title = 'آیا از حذف مطمئن هستید؟',
-    description = 'این عمل غیرقابل بازگشت است و تمام داده‌های مرتبط پاک خواهند شد.'
-}: DeleteConfirmationProps) => {
+    title,
+    description,
+    confirmLabel = 'تایید',
+    cancelLabel = 'انصراف',
+    variant = 'danger',
+    icon = 'Trash'
+}: ConfirmModalProps) => {
+    const IconComponent = Icons[icon];
+
     return (
         <Modal
             visible={visible}
@@ -31,8 +42,10 @@ export const DeleteConfirmation = ({
                     <View className="w-12 h-1.5 bg-stone-300 rounded-full self-center mb-8" />
 
                     <View className="items-center gap-y-4 mb-10">
-                        <View className="w-16 h-16 bg-bakery-soft rounded-full items-center justify-center mb-2 border border-bakery-border">
-                            <Icons.Trash size={32} color="#7C2D12" />
+                        <View className={cn(
+                            "w-16 h-16 rounded-full items-center justify-center mb-2 border border-bakery-border bg-bakery-soft"
+                        )}>
+                            <IconComponent size={32} color="#4A3728" />
                         </View>
 
                         <Typography variant="h2" className="text-center">{title}</Typography>
@@ -43,16 +56,18 @@ export const DeleteConfirmation = ({
 
                     <View className="flex-row gap-3">
                         <Button
-                            variant="secondary"
-                            label="انصراف"
-                            onPress={onCancel}
-                            className="flex-1"
+                            variant="primary"
+                            label={confirmLabel}
+                            onPress={onConfirm}
+                            style={{ flex: 1 }}
+                            className="h-14"
                         />
                         <Button
-                            variant="primary"
-                            label="بله، حذف شود"
-                            onPress={onConfirm}
-                            className="flex-1 bg-bakery-danger"
+                            variant="secondary"
+                            label={cancelLabel}
+                            onPress={onCancel}
+                            style={{ flex: 1 }}
+                            className="h-14"
                         />
                     </View>
                 </Pressable>

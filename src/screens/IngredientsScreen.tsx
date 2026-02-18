@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { DeleteConfirmation } from '../components/common/DeleteConfirmation';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 import { EmptyState } from '../components/common/EmptyState';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -76,7 +76,7 @@ export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenPr
                 ))
             )}
 
-            <DeleteConfirmation
+            <ConfirmModal
                 visible={!!idToDelete}
                 onCancel={() => setIdToDelete(null)}
                 onConfirm={() => {
@@ -84,6 +84,10 @@ export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenPr
                         handleDelete(idToDelete);
                     }
                 }}
+                title="حذف ماده اولیه"
+                description="آیا از حذف این ماده اولیه مطمئن هستید؟ تمام دستور پخت‌هایی که از این ماده استفاده می‌کنند تحت تاثیر قرار خواهند گرفت."
+                confirmLabel="بله، حذف شود"
+                variant="danger"
             />
         </Screen>
     );

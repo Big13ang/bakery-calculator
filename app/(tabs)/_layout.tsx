@@ -12,6 +12,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        animation: 'none', // Critical: avoid fade-related flicker
         tabBarStyle: {
           position: 'absolute',
           bottom: 0,

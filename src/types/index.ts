@@ -14,6 +14,7 @@ export interface AppSettings {
     businessName: string;
     ownerName: string;
     subscriptionStatus: 'free' | 'test' | 'plus' | 'pro';
+    hasAcceptedTerms: boolean;
 }
 
 export interface AppState {

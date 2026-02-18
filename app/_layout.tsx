@@ -3,12 +3,12 @@ import {
   Vazirmatn_400Regular,
   Vazirmatn_700Bold
 } from '@expo-google-fonts/vazirmatn';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, Theme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { Suspense, useEffect, useState } from 'react';
-import { ActivityIndicator, I18nManager, LogBox } from 'react-native';
+import { ActivityIndicator, I18nManager, LogBox, View } from 'react-native';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
@@ -26,6 +26,28 @@ LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
   '[Reanimated] Writing to `value` during component render',
 ]);
+
+const CustomLightTheme: Theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: '#FDF8F1', // Exact match to bakery-bg
+    card: '#FFFFFF',
+    text: '#4A3728',
+    border: '#D9C4A9',
+  },
+};
+
+const CustomDarkTheme: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: '#151718',
+    card: '#1A1A1A',
+    text: '#ECEDEE',
+    border: '#2C2C2C',
+  },
+};
 
 export const DATABASE_NAME = 'bakery_app.db';
 
@@ -77,21 +99,34 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <Suspense fallback={<ActivityIndicator size="large" />}>
+        <Suspense fallback={<View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#151718' : '#FDF8F1', alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator size="large" /></View>}>
           <SQLiteProvider
             databaseName={DATABASE_NAME}
             options={{ enableChangeListener: true }}
             useSuspense>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <Stack screenOptions={{ headerShown: false }}>
+            <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'ios_from_right',
+                  animationDuration: 400,
+                  contentStyle: { backgroundColor: colorScheme === 'dark' ? '#151718' : '#FDF8F1' }
+                }}
+              >
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom'
+                  }}
+                />
               </Stack>
               <StatusBar style="auto" />
             </ThemeProvider>
           </SQLiteProvider>
         </Suspense>
       </AppProvider>
-    </SafeAreaProvider>
+    </SafeAreaProvider >
   );
 }

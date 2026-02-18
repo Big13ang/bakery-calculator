@@ -1,15 +1,16 @@
+import React, { memo } from 'react';
 import { View } from 'react-native';
 import { cn } from '../../utils';
 import { Typography } from './Typography';
 
 interface BadgeProps {
+    value: string | number;
     label: string;
-    subLabel?: string;
-    variant?: 'default' | 'accent' | 'danger';
+    variant?: 'default' | 'accent' | 'danger' | 'success';
     className?: string;
 }
 
-export const Badge = ({ value, label, variant = 'default', className }: { value: string | number; label: string; variant?: 'default' | 'accent' | 'danger' | 'success'; className?: string }) => {
+export const Badge = memo(({ value, label, variant = 'default', className }: BadgeProps) => {
     const styles = {
         default: 'bg-bakery-soft border-bakery-border',
         accent: 'bg-bakery-accent border-bakery-accent',
@@ -34,4 +35,4 @@ export const Badge = ({ value, label, variant = 'default', className }: { value:
             </Typography>
         </View>
     );
-};
+});

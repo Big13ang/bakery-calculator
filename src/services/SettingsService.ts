@@ -19,12 +19,14 @@ export class SettingsService {
             businessName: '',
             ownerName: '',
             subscriptionStatus: 'free',
+            hasAcceptedTerms: false,
         };
 
         for (const s of all) {
             if (s.key === 'businessName') settings.businessName = s.value;
             if (s.key === 'ownerName') settings.ownerName = s.value;
             if (s.key === 'subscriptionStatus') settings.subscriptionStatus = s.value as any;
+            if (s.key === 'hasAcceptedTerms') settings.hasAcceptedTerms = s.value === 'true';
         }
         return settings;
     }

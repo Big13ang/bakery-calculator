@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { StatusModal } from '../components/ui/StatusModal';
 import { ingredientService } from '../services/IngredientService';
 import { recipeService } from '../services/RecipeService';
 import { settingsService } from '../services/SettingsService';
@@ -9,6 +10,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     businessName: '',
     ownerName: '',
     subscriptionStatus: 'free',
+    hasAcceptedTerms: false,
 };
 
 interface AppContextType {
@@ -37,7 +39,13 @@ interface AppContextType {
     calculateDraftCosts: (recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => { costPerUnit: number; sellingPrice: number; totalCost: number; totalPrice: number; profit: number };
 
     // Settings Actions
-    updateSetting: (key: string, value: string) => Promise<void>;
+    updateSetting: (key: string, value: string | boolean) => Promise<void>;
+
+    // Data Management Actions
+    exportData: () => Promise<void>;
+    importData: () => Promise<void>;
+    resetAllData: () => Promise<void>;
+    showStatus: (type: 'success' | 'error', title: string, message: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,6 +56,16 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [units, setUnits] = useState<Unit[]>([]);
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
     const [isLoading, setIsLoading] = useState(true);
+    const [statusModal, setStatusModal] = useState<{ visible: boolean, type: 'success' | 'error', title: string, message: string }>({
+        visible: false,
+        type: 'success',
+        title: '',
+        message: ''
+    });
+
+    const showStatus = useCallback((type: 'success' | 'error', title: string, message: string) => {
+        setStatusModal({ visible: true, type, title, message });
+    }, []);
 
     const refreshData = useCallback(async () => {
         setIsLoading(true);
@@ -76,68 +94,113 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     // --- Ingredient Actions ---
 
-    const addIngredient = async (data: NewIngredient) => {
+    const addIngredient = useCallback(async (data: NewIngredient) => {
         await ingredientService.createIngredient(data);
         await refreshData();
-    };
+    }, [refreshData]);
 
-    const updateIngredientPrice = async (id: string, newPrice: number) => {
+    const updateIngredientPrice = useCallback(async (id: string, newPrice: number) => {
         await ingredientService.updatePrice(id, newPrice);
         // Recalculate costs for all recipes using this ingredient
         await recipeService.updateCostsForIngredient(id, 'تغییر قیمت ماده اولیه');
         await refreshData();
-    };
+    }, [refreshData]);
 
-    const updateIngredient = async (id: string, data: Partial<Ingredient>) => {
+    const updateIngredient = useCallback(async (id: string, data: Partial<Ingredient>) => {
         await ingredientService.updateIngredient(id, data);
         if (data.price !== undefined) {
             await recipeService.updateCostsForIngredient(id, 'بروزرسانی اطلاعات ماده اولیه');
         }
         await refreshData();
-    };
+    }, [refreshData]);
 
-    const deleteIngredient = async (id: string) => {
+    const deleteIngredient = useCallback(async (id: string) => {
         await ingredientService.deleteIngredient(id);
         await refreshData();
-    };
+    }, [refreshData]);
 
     // --- Recipe Actions ---
 
-    const addRecipe = async (data: NewRecipe & { ingredients?: { ingredientId: string, quantity: number }[] }): Promise<string> => {
+    const addRecipe = useCallback(async (data: NewRecipe & { ingredients?: { ingredientId: string, quantity: number }[] }): Promise<string> => {
         const newRecipe = await recipeService.createRecipe(data);
         await refreshData();
         return newRecipe.id;
-    };
+    }, [refreshData]);
 
-    const updateRecipe = async (id: string, updates: Partial<Recipe>, newIngredients?: { ingredientId: string, quantity: number }[]) => {
+    const updateRecipe = useCallback(async (id: string, updates: Partial<Recipe>, newIngredients?: { ingredientId: string, quantity: number }[]) => {
         await recipeService.updateRecipe(id, updates, newIngredients);
         await refreshData();
-    };
+    }, [refreshData]);
 
-    const addIngredientToRecipe = async (recipeId: string, ingredientId: string, quantity: number) => {
+    const addIngredientToRecipe = useCallback(async (recipeId: string, ingredientId: string, quantity: number) => {
         await recipeService.addIngredientToRecipe(recipeId, ingredientId, quantity);
         await refreshData();
-    };
+    }, [refreshData]);
 
-    const recalculateRecipe = async (recipeId: string) => {
+    const recalculateRecipe = useCallback(async (recipeId: string) => {
         await recipeService.recalculateCosts(recipeId);
         await refreshData();
-    };
+    }, [refreshData]);
 
-    const deleteRecipe = async (id: string) => {
+    const deleteRecipe = useCallback(async (id: string) => {
         await recipeService.deleteRecipe(id);
         await refreshData();
-    };
+    }, [refreshData]);
 
     // --- Settings Actions ---
 
-    const updateSetting = async (key: string, value: string) => {
-        await settingsService.setSetting(key, value);
+    const updateSetting = useCallback(async (key: string, value: string | boolean) => {
+        const stringValue = String(value);
+        await settingsService.setSetting(key, stringValue);
         setSettings(prev => ({ ...prev, [key]: value } as AppSettings));
-    };
+    }, []);
+
+    // --- Data Management Actions ---
+
+    const exportData = useCallback(async () => {
+        const { dataService } = require('../services/DataService');
+        try {
+            await dataService.exportData();
+            showStatus('success', 'خروجی موفق', 'اطلاعات با موفقیت ذخیره و آماده اشتراک‌گذاری شد.');
+        } catch (error: any) {
+            console.error("Export error:", error);
+            showStatus('error', 'خطا در خروجی', error.message || 'مشکلی در تهیه فایل پشتیبان پیش آمد.');
+        }
+    }, [showStatus]);
+
+    const importData = useCallback(async () => {
+        const { dataService } = require('../services/DataService');
+        try {
+            const success = await dataService.importData();
+            if (success) {
+                await refreshData();
+                showStatus('success', 'بازیابی موفق', 'تمام اطلاعات با موفقیت از فایل پشتیبان جایگزین شد.');
+            }
+        } catch (error: any) {
+            console.error("Import error:", error);
+            showStatus('error', 'خطا در بازیابی', error.message || 'فایل انتخاب شده معتبر نیست یا فرآیند با خطا مواجه شد.');
+        }
+    }, [refreshData, showStatus]);
+
+    const resetAllData = useCallback(async () => {
+        const { dataService } = require('../services/DataService');
+        try {
+            const success = await dataService.resetAllData();
+            if (success) {
+                // Re-run migrations to ensure units are seeded
+                const { runMigrations } = require('../db/client');
+                await runMigrations();
+                await refreshData();
+                showStatus('success', 'پاکسازی موفق', 'تمام اطلاعات با موفقیت حذف شد.');
+            }
+        } catch (error: any) {
+            console.error("Reset error:", error);
+            showStatus('error', 'خطا در پاکسازی', error.message || 'مشکلی در حذف اطلاعات پیش آمد.');
+        }
+    }, [refreshData, showStatus]);
 
     // Helper for UI drafts
-    const calculateDraftCosts = (recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => {
+    const calculateDraftCosts = useCallback((recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => {
         let totalCost = 0;
         recipe.ingredients?.forEach((ri) => {
             const ing = ingredients.find((i) => i.id === ri.ingredientId);
@@ -149,7 +212,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         const profit = totalPrice - totalCost;
 
         return { costPerUnit, sellingPrice, totalCost, totalPrice, profit };
-    };
+    }, [ingredients]);
 
     return (
         <AppContext.Provider value={{
@@ -169,9 +232,20 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             recalculateRecipe,
             deleteRecipe,
             calculateDraftCosts,
-            updateSetting
+            updateSetting,
+            exportData,
+            importData,
+            resetAllData,
+            showStatus
         }}>
             {children}
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
         </AppContext.Provider>
     );
 };
