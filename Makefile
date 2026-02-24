@@ -1,4 +1,4 @@
-# bakery-calculator Build Automation
+# amoo-ghanad Build Automation
 
 .PHONY: help check build-android build-ios clean
 
@@ -42,7 +42,7 @@ eas-android: check
 build-ios:
 	@echo "$(BLUE)Starting Direct Local iOS Build (Archive)...$(NC)"
 	export JAVA_HOME=$$(/usr/libexec/java_home -v 17) && \
-	cd ios && xcodebuild -scheme bakery-calculator -configuration Release build
+	cd ios && xcodebuild -scheme amoo-ghanad -configuration Release build
 
 clean:
 	@echo "$(BLUE)Cleaning up...$(NC)"

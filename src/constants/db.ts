@@ -1,1 +1,1 @@
-export const DATABASE_NAME = 'bakery-calculator-v1';
+export const DATABASE_NAME = 'amoo-ghanad-v1';

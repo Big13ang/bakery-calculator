@@ -1,5 +1,5 @@
 {
-  "name": "bakery-calculator",
+  "name": "amoo-ghanad",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -11,7 +11,7 @@
     "lint": "expo lint",
     "build:android": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd android && ./gradlew assembleRelease",
     "build:aab": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd android && ./gradlew bundleRelease",
-    "build:ios": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd ios && xcodebuild -scheme bakery-calculator -configuration Release build"
+    "build:ios": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd ios && xcodebuild -scheme amoo-ghanad -configuration Release build"
   },
   "dependencies": {
     "@expo-google-fonts/lalezar": "^0.4.1",

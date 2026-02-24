@@ -2,8 +2,8 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
-    name: "bakery-calculator",
-    slug: "bakery-calculator",
+    name: "عمو قناد",
+    slug: "amoo-ghanad",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png",
@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     newArchEnabled: true,
     ios: {
         supportsTablet: true,
-        bundleIdentifier: "ir.appsaz.bakery.calculator"
+        bundleIdentifier: "ir.appsaz.amoo.ghanad"
     },
     android: {
         adaptiveIcon: {
@@ -22,7 +22,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
-        package: "ir.appsaz.bakery.calculator"
+        package: "ir.appsaz.amoo.ghanad",
+
     },
     web: {
         output: "static",
@@ -33,11 +34,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         [
             "expo-splash-screen",
             {
-                image: "./src/assets/images/splash-icon.png",
+                image: "./src/assets/images/light-splash-screen.png",
                 imageWidth: 200,
                 resizeMode: "contain",
                 backgroundColor: "#ffffff",
                 dark: {
+                    image: "./src/assets/images/dark-splash-screen.png",
                     backgroundColor: "#000000"
                 }
             }

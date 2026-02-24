@@ -33,7 +33,7 @@ export const PolicyAcceptModal = ({ visible, onAccept }: PolicyAcceptModalProps)
 
                     <ScrollView className="p-6 max-h-[300px]">
                         <Typography variant="body" className="leading-7 text-justify mb-4">
-                            برای استفاده از برنامه «محاسبه‌گر هزینه‌های تولیدی»، لطفاً موارد زیر را مطالعه فرمایید:
+                            برای استفاده از برنامه «عمو قناد»، لطفاً موارد زیر را مطالعه فرمایید:
                         </Typography>
 
                         <View className="gap-y-4 mb-6">

@@ -27,7 +27,7 @@ export const TermsOfServiceScreen = () => {
             <ScrollView className="flex-1 px-4 pb-12" contentContainerStyle={{ paddingBottom: 40 }}>
                 <Card className="mb-6">
                     <Typography variant="body" className="leading-7 text-justify">
-                        استفاده از برنامه «محاسبه‌گر هزینه‌های تولیدی» به معنای پذیرش تمامی موارد ذکر شده در این سند می‌باشد.
+                        استفاده از برنامه «عمو قناد» به معنای پذیرش تمامی موارد ذکر شده در این سند می‌باشد.
                     </Typography>
                 </Card>
 

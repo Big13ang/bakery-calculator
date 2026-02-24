@@ -27,7 +27,7 @@ export const PrivacyPolicyScreen = () => {
             <ScrollView className="flex-1 px-4 pb-12" contentContainerStyle={{ paddingBottom: 40 }}>
                 <Card className="mb-6">
                     <Typography variant="body" className="leading-7 text-justify">
-                        ما در برنامه «محاسبه‌گر هزینه‌های تولیدی» به حریم خصوصی شما اهمیت زیادی می‌دهیم. این سند توضیح می‌دهد که داده‌های شما چگونه مدیریت می‌شوند.
+                        ما در برنامه «عمو قناد» به حریم خصوصی شما اهمیت زیادی می‌دهیم. این سند توضیح می‌دهد که داده‌های شما چگونه مدیریت می‌شوند.
                     </Typography>
                 </Card>
 
