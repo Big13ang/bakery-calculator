@@ -17,8 +17,8 @@ interface DashboardScreenProps {
 export const DashboardScreen = ({ onNavigate, onAddIngredient, onAddRecipe }: DashboardScreenProps) => {
     const { recipes, ingredients, settings, updateSetting } = useApp();
 
-    const totalCost = recipes.reduce((acc, r) => acc + (r.currentCost || 0), 0);
-    const totalRevenue = recipes.reduce((acc, r) => acc + (r.currentPrice || 0), 0);
+    const totalCost = recipes.reduce((acc, r) => acc + (r.totalCost || 0), 0);
+    const totalRevenue = recipes.reduce((acc, r) => acc + (r.totalPrice || 0), 0);
     const totalProfit = totalRevenue - totalCost;
     const profitPercentage = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
 

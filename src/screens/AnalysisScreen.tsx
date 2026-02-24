@@ -72,11 +72,11 @@ export const AnalysisScreen = () => {
                                 <View className="flex-row justify-between pt-2 border-t border-dashed border-bakery-border">
                                     <View className="flex-col">
                                         <Typography variant="micro" className="opacity-50 uppercase">قیمت فروش فعلی</Typography>
-                                        <Typography variant="h3" className="text-sm">{formatPrice((recipe.currentPrice || 0) / (recipe.outputCount || 1))} ت</Typography>
+                                        <Typography variant="h3" className="text-sm">{formatPrice(recipe.currentPrice || 0)} ت</Typography>
                                     </View>
                                     <View className="flex-col items-end">
                                         <Typography variant="micro" className="text-bakery-accent uppercase">پیش‌بینی بعدی</Typography>
-                                        <Typography variant="h3" className="text-bakery-accent text-sm">{prediction ? `${formatPrice(prediction / (recipe.outputCount || 1))} ت` : 'نامشخص'}</Typography>
+                                        <Typography variant="h3" className="text-bakery-accent text-sm">{prediction ? `${formatPrice(prediction)} ت` : 'نامشخص'}</Typography>
                                     </View>
                                 </View>
                             </Card>

@@ -79,12 +79,12 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                                         <Typography
                                             variant="caption"
                                             className="font-bold opacity-70 uppercase">
-                                            فروش هر {units.find(u => u.id === recipe.outputUnitId)?.name || '-'}: {formatPrice((recipe.currentPrice || 0) / (recipe.outputCount || 1))} ت
+                                            فروش هر {units.find(u => u.id === recipe.outputUnitId)?.name || '-'}: {formatPrice(recipe.currentPrice || 0)} ت
                                         </Typography>
                                         <Typography
                                             variant="body"
                                             className="font-black text-bakery-accent uppercase">
-                                            قیمت فروش کل: {formatPrice(recipe.currentPrice || 0)} ت
+                                            قیمت فروش کل: {formatPrice(recipe.totalPrice || 0)} ت
                                         </Typography>
                                     </View>
 
