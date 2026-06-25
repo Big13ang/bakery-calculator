@@ -48,3 +48,29 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## CI/CD Android APK Build (GitHub Actions)
+
+This repository is configured with a GitHub Actions workflow that automatically builds an installable Android APK (`app-release.apk`) signed with the debug keystore.
+
+### How to Start the Workflow
+
+1. Navigate to the repository on GitHub.
+2. Click on the **Actions** tab.
+3. Select the **Build Android APK** workflow in the left sidebar.
+4. Click the **Run workflow** dropdown on the right.
+5. Select the branch and click **Run workflow**.
+
+### Downloading the APK
+
+1. Once the workflow run completes, click on it.
+2. Scroll down to the **Artifacts** section.
+3. Click on the **amoo-ghanad-apk** artifact to download the ZIP file.
+4. Extract the ZIP file to get `app-release.apk`.
+
+### Installing the APK on Android
+
+1. Transfer `app-release.apk` to your Android device.
+2. Locate the APK in your device's File Manager.
+3. Tap the file to install it. (If prompted, enable "Allow installation from unknown sources" in settings).
+
