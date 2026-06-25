@@ -11,7 +11,7 @@
     "lint": "expo lint",
     "build:android": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd android && ./gradlew assembleRelease",
     "build:aab": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd android && ./gradlew bundleRelease",
-    "sign:bazaar": "java -jar /Volumes/External/Downloads/bundlesigner-0.1.13.jar genbin -v --bundle ./android/app/build/outputs/bundle/release/app-release.aab --bin ./android/app/build/outputs/bundle/release/ --v2-signing-enabled true --v3-signing-enabled true --ks ./android/app/release.keystore --ks-key-alias amoo-ghanad-release --ks-pass pass:amooghanad2026 --key-pass pass:amooghanad2026",
+    "sign:bazaar": "java -jar /Volumes/External/Downloads/bundlesigner-0.1.13.jar genbin -v --bundle ./android/app/build/outputs/bundle/release/app-release.aab --bin ./android/app/build/outputs/bundle/release/ --v2-signing-enabled true --v3-signing-enabled true --ks ./android/app/release.keystore --ks-key-alias amoo-ghanad-release --ks-pass pass:$BAZAAR_KS_PASS --key-pass pass:$BAZAAR_KEY_PASS",
     "build:ios": "export JAVA_HOME=$(/usr/libexec/java_home -v 17) && cd ios && xcodebuild -scheme amoo-ghanad -configuration Release build"
   },
   "dependencies": {
