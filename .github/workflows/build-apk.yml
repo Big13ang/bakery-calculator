@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -41,6 +43,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -76,7 +80,7 @@ jobs:
 
       - name: Generate Android Native Project (Prebuild)
         if: steps.prebuild-cache.outputs.cache-hit != 'true'
-        run: bunx expo prebuild --platform android --clean
+        run: bunx expo prebuild --platform android --clean --non-interactive
 
       - name: Build Android Release APK + AAB
         run: |
