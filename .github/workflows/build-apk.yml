@@ -52,6 +52,20 @@ jobs:
     # Pull requests run lint only.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
+    env:
+      # Route native C/C++ compiles through ccache. The Android NDK's CMake
+      # toolchain reads NDK_CCACHE and wires `ccache` in as the compiler
+      # launcher, so this covers both New-Architecture CMake builds and any
+      # legacy ndk-build modules.
+      NDK_CCACHE: ccache
+      # Make ccache hits survive `expo prebuild` regeneration. prebuild rewrites
+      # the native tree with fresh paths/timestamps; these settings hash file
+      # *content* (not mtimes or absolute dirs) so unchanged sources still hit.
+      CCACHE_COMPILERCHECK: content
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_SLOPPINESS: time_macros,include_file_mtime,include_file_ctime,file_stat_matches,system_headers,pch_defines
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -67,6 +81,9 @@ jobs:
           distribution: zulu
           java-version: 17
 
+      # Caches the Gradle User Home: downloaded dependencies, the wrapper, and
+      # the local build cache (~/.gradle/caches/build-cache-1) that lets task
+      # outputs (incl. compiled .so) be reused across runs.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
@@ -89,25 +106,53 @@ jobs:
           key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'bun.lock') }}
           restore-keys: |
             ccache-${{ runner.os }}-${{ runner.arch }}-
-          max-size: 2G
+          max-size: 3G
 
       - name: Configure ccache
         run: |
-          ccache --set-config=compiler_check=content
           ccache --zero-stats
+          ccache --show-config | grep -E 'compiler_check|sloppiness|base_dir|hash_dir|max_size' || true
+
+      # ----------------------------------------------------------------------
+      # Prebuild (android/) output cache  --  the biggest win.
+      #
+      # The generated android/ folder is a pure function of the Expo config,
+      # the dependency set, and the app assets. By caching it:
+      #   * cache HIT  -> skip `expo prebuild` entirely AND hand Gradle the
+      #                   byte-identical input files it saw last time, so
+      #                   Gradle's build cache HITS instead of re-running tasks.
+      #   * cache MISS -> regenerate, then save the *pristine* android/ here,
+      #                   before Gradle creates any build outputs.
+      #
+      # Exact-key only (no restore-keys) so a stale folder can never be reused.
+      # Bump the `-v1-` salt to force a clean regeneration if ever needed.
+      # ----------------------------------------------------------------------
+      - name: Restore prebuild (android/) cache
+        id: prebuild-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: android
+          key: prebuild-android-v1-${{ hashFiles('app.config.ts', 'package.json', 'bun.lock', 'src/assets/**') }}
 
       - name: Generate Android native project
+        if: steps.prebuild-cache.outputs.cache-hit != 'true'
         env:
           CI: 1
           NODE_ENV: production
         run: bunx expo prebuild --platform android --clean
+
+      - name: Save prebuild (android/) cache
+        if: steps.prebuild-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: android
+          key: ${{ steps.prebuild-cache.outputs.cache-primary-key }}
 
       - name: Build Android release AAB
         working-directory: android
         env:
           CI: 1
           NODE_ENV: production
-          NDK_CCACHE: ccache
           GRADLE_OPTS: >-
             -Dorg.gradle.jvmargs=-Xmx6g
             -XX:MaxMetaspaceSize=1g
@@ -124,7 +169,7 @@ jobs:
 
       - name: Show ccache statistics
         if: always()
-        run: ccache --show-stats
+        run: ccache --show-stats --verbose || ccache --show-stats
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
