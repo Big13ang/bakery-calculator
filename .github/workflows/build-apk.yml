@@ -83,7 +83,6 @@ jobs:
           cd android
           ./gradlew assembleRelease bundleRelease \
             --build-cache \
-            --configuration-cache \
             --parallel \
             -PreactNativeArchitectures=arm64-v8a \
             -Pandroid.enablePngCrunchInReleaseBuilds=false
