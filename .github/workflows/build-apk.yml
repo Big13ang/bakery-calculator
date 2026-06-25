@@ -78,22 +78,17 @@ jobs:
         run: bun install --frozen-lockfile
 
       # Cache C++ object files for reanimated/gesture-handler CMake builds.
-      # compiler_check=content is required on ephemeral runners — the compiler
-      # binary path/mtime changes between machines, so content hashing avoids
-      # false cache misses.
-      - name: Restore ccache
-        uses: actions/cache@v6
+      # compiler_check=content avoids false misses on ephemeral runners where
+      # the compiler binary path/mtime differs between machines.
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
         with:
-          path: ~/.cache/ccache
           key: ccache-${{ runner.os }}-${{ hashFiles('package.json', 'bun.lock') }}
           restore-keys: ccache-${{ runner.os }}-
+          max-size: 2G
 
       - name: Configure ccache
-        run: |
-          sudo apt-get install -y -qq ccache
-          ccache --set-config=compiler_check=content
-          ccache --set-config=max_size=2G
-          ccache --zero-stats
+        run: ccache --set-config=compiler_check=content
 
       - name: Cache Expo prebuild output
         id: prebuild-cache
@@ -105,7 +100,7 @@ jobs:
               hashFiles(
                 'package.json',
                 'bun.lock',
-                'app.config.ts',
+                'app.config.*',
                 'eas.json',
                 'plugins/**',
                 'patches/**'
