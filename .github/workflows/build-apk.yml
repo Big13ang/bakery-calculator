@@ -2,15 +2,23 @@ name: Build Android (APK + AAB)
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
@@ -21,15 +29,14 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Cache node_modules
-        id: node-cache-lint
+      - name: Cache Bun packages
         uses: actions/cache@v6
         with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('bun.lock') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
+          restore-keys: ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        if: steps.node-cache-lint.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
       - name: Lint
@@ -38,6 +45,7 @@ jobs:
   build:
     name: Build Android (APK + AAB)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -51,84 +59,99 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: 17
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          gradle-home-cache-cleanup: true
+          cache-cleanup: on-success
 
-      # ccache wraps the NDK clang compiler — reanimated/gesture-handler CMake builds
-      # hit the object-file cache on unchanged C++ source, saving 2-4 min per run.
-      - name: Set up ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ccache-${{ runner.os }}-${{ hashFiles('package.json', 'bun.lock') }}
-          restore-keys: ccache-${{ runner.os }}-
-          max-size: 2G
-
-      - name: Cache node_modules
-        id: node-cache
+      - name: Cache Bun packages
         uses: actions/cache@v6
         with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('bun.lock') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
+          restore-keys: ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        if: steps.node-cache.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
+
+      # Cache C++ object files for reanimated/gesture-handler CMake builds.
+      # compiler_check=content is required on ephemeral runners — the compiler
+      # binary path/mtime changes between machines, so content hashing avoids
+      # false cache misses.
+      - name: Restore ccache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ runner.os }}-${{ hashFiles('package.json', 'bun.lock') }}
+          restore-keys: ccache-${{ runner.os }}-
+
+      - name: Configure ccache
+        run: |
+          sudo apt-get install -y -qq ccache
+          ccache --set-config=compiler_check=content
+          ccache --set-config=max_size=2G
+          ccache --zero-stats
 
       - name: Cache Expo prebuild output
         id: prebuild-cache
         uses: actions/cache@v6
         with:
           path: android
-          key: prebuild-${{ hashFiles('package.json', 'bun.lock', 'app.config.ts', 'eas.json') }}
-          restore-keys: prebuild-
+          key: >-
+            ${{ runner.os }}-expo-android-${{
+              hashFiles(
+                'package.json',
+                'bun.lock',
+                'app.config.ts',
+                'eas.json',
+                'plugins/**',
+                'patches/**'
+              )
+            }}
 
-      - name: Generate Android Native Project (Prebuild)
+      - name: Generate Android native project
         if: steps.prebuild-cache.outputs.cache-hit != 'true'
         run: bunx expo prebuild --platform android --clean --non-interactive
 
-      # Restored after prebuild so it overlays fresher compiled outputs on top.
-      - name: Cache Gradle build outputs
-        uses: actions/cache@v6
-        with:
-          path: |
-            android/app/build
-            android/.gradle
-          key: gradle-build-${{ hashFiles('android/app/src/**', 'android/build.gradle', 'android/app/build.gradle') }}
-          restore-keys: gradle-build-
-
-      - name: Build Android Release APK + AAB
+      - name: Build Android release APK and AAB
+        working-directory: android
         env:
-          # NDK toolchain file reads this env var and wraps clang calls with ccache.
           NDK_CCACHE: ccache
           GRADLE_OPTS: >-
-            -Dorg.gradle.jvmargs=-Xmx6144m
-            -XX:MaxMetaspaceSize=512m
+            -Dorg.gradle.jvmargs=-Xmx6g
+            -XX:MaxMetaspaceSize=1g
             -XX:+UseParallelGC
             -XX:+HeapDumpOnOutOfMemoryError
         run: |
-          cd android
-          ./gradlew assembleRelease bundleRelease \
+          ./gradlew \
+            :app:assembleRelease \
+            :app:bundleRelease \
             --build-cache \
             --parallel \
-            --no-daemon \
             -PreactNativeArchitectures=arm64-v8a \
             -Pandroid.enablePngCrunchInReleaseBuilds=false
 
-      - name: Upload APK Artifact
+      - name: Show ccache statistics
+        if: always()
+        run: ccache --show-stats
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: amoo-ghanad-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
 
-      - name: Upload AAB Artifact
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
         with:
           name: amoo-ghanad-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
