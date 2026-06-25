@@ -34,7 +34,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
-          restore-keys: ${{ runner.os }}-bun-
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -46,7 +47,10 @@ jobs:
     name: Build Android (AAB)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+
+    # Build AABs only for pushes to master/main or manual runs.
+    # Pull requests run lint only.
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
     steps:
       - name: Checkout repository
@@ -73,54 +77,43 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
-          restore-keys: ${{ runner.os }}-bun-
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Cache C++ object files for reanimated/gesture-handler CMake builds.
-      # compiler_check=content avoids false misses on ephemeral runners where
-      # the compiler binary path/mtime differs between machines.
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ccache-${{ runner.os }}-${{ hashFiles('package.json', 'bun.lock') }}
-          restore-keys: ccache-${{ runner.os }}-
+          key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'bun.lock') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ runner.arch }}-
           max-size: 2G
 
       - name: Configure ccache
-        run: ccache --set-config=compiler_check=content
-
-      - name: Cache Expo prebuild output
-        id: prebuild-cache
-        uses: actions/cache@v6
-        with:
-          path: android
-          key: >-
-            ${{ runner.os }}-expo-android-${{
-              hashFiles(
-                'package.json',
-                'bun.lock',
-                'app.config.*',
-                'eas.json',
-                'plugins/**',
-                'patches/**'
-              )
-            }}
+        run: |
+          ccache --set-config=compiler_check=content
+          ccache --zero-stats
 
       - name: Generate Android native project
-        if: steps.prebuild-cache.outputs.cache-hit != 'true'
-        run: bunx expo prebuild --platform android --clean --non-interactive
+        env:
+          CI: 1
+          NODE_ENV: production
+        run: bunx expo prebuild --platform android --clean
 
-      - name: Build Android release APK and AAB
+      - name: Build Android release AAB
         working-directory: android
         env:
+          CI: 1
+          NODE_ENV: production
           NDK_CCACHE: ccache
           GRADLE_OPTS: >-
             -Dorg.gradle.jvmargs=-Xmx6g
             -XX:MaxMetaspaceSize=1g
             -XX:+UseParallelGC
             -XX:+HeapDumpOnOutOfMemoryError
+            -Dfile.encoding=UTF-8
         run: |
           ./gradlew \
             :app:bundleRelease \
