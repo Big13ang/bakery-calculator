@@ -59,6 +59,15 @@ jobs:
         with:
           gradle-home-cache-cleanup: true
 
+      # ccache wraps the NDK clang compiler — reanimated/gesture-handler CMake builds
+      # hit the object-file cache on unchanged C++ source, saving 2-4 min per run.
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ccache-${{ runner.os }}-${{ hashFiles('package.json', 'bun.lock') }}
+          restore-keys: ccache-${{ runner.os }}-
+          max-size: 2G
+
       - name: Cache node_modules
         id: node-cache
         uses: actions/cache@v6
@@ -82,6 +91,7 @@ jobs:
         if: steps.prebuild-cache.outputs.cache-hit != 'true'
         run: bunx expo prebuild --platform android --clean --non-interactive
 
+      # Restored after prebuild so it overlays fresher compiled outputs on top.
       - name: Cache Gradle build outputs
         uses: actions/cache@v6
         with:
@@ -93,17 +103,21 @@ jobs:
 
       - name: Build Android Release APK + AAB
         env:
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6144m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+          # NDK toolchain file reads this env var and wraps clang calls with ccache.
+          NDK_CCACHE: ccache
+          GRADLE_OPTS: >-
+            -Dorg.gradle.jvmargs=-Xmx6144m
+            -XX:MaxMetaspaceSize=512m
+            -XX:+UseParallelGC
+            -XX:+HeapDumpOnOutOfMemoryError
         run: |
           cd android
           ./gradlew assembleRelease bundleRelease \
             --build-cache \
-            --configuration-cache \
             --parallel \
             --no-daemon \
             -PreactNativeArchitectures=arm64-v8a \
-            -Pandroid.enablePngCrunchInReleaseBuilds=false \
-            -Dorg.gradle.caching=true
+            -Pandroid.enablePngCrunchInReleaseBuilds=false
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v7
