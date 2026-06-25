@@ -2,13 +2,13 @@ import { ReactNode } from 'react';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import '../../global.css';
 
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+
 configureReanimatedLogger({
     level: ReanimatedLogLevel.warn,
     strict: false,
 });
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 
 export const ThemeWrapper = ({ children }: { children: ReactNode }) => {
     const colorScheme = useColorScheme();

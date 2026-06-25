@@ -18,7 +18,7 @@ interface IngredientsScreenProps {
 }
 
 export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenProps) => {
-    const { ingredients, updateIngredientPrice, deleteIngredient, units } = useApp();
+    const { ingredients, deleteIngredient, units } = useApp();
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
 
     const handleDelete = async (id: string) => {

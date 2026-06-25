@@ -8,10 +8,6 @@ import { useApp } from '../context/AppContext';
 import { RecipeWithIngredients } from '../types';
 import { formatPrice } from '../utils';
 
-interface AnalysisScreenProps {
-    onNavigate?: (tab: string) => void;
-}
-
 // Logic from existing App
 const calculatePrediction = (history: any[]) => {
     if (history.length < 2) return null;

@@ -17,6 +17,8 @@ import { AppProvider } from '@/context/AppContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SQLiteProvider } from 'expo-sqlite';
 
+import { runMigrations } from '@/db/client';
+
 // Force RTL for Persian support
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -56,8 +58,6 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
-
-import { runMigrations } from '@/db/client';
 
 // ... (existing imports)
 

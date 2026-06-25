@@ -1,7 +1,5 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
-const path = require("path");
-
 const config = getDefaultConfig(__dirname);
 
 // Exclude recipecost-pro(1) from bundling

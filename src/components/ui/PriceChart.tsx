@@ -96,3 +96,6 @@ export const PriceChart = memo(({
         </View>
     );
 });
+
+PriceChart.displayName = 'PriceChart';
+

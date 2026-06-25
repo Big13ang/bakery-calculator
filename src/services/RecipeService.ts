@@ -87,13 +87,13 @@ export class RecipeService {
 
         // Formula 4: Calculation of Total Selling Price
         const profitMultiplier = 1 + (recipe.profitMargin / 100);
-        const totalSellingPrice = totalCost * profitMultiplier;
+        // const totalSellingPrice = totalCost * profitMultiplier;
 
         // Formula 3: Selling Price per Unit
         const sellingPricePerUnit = costPerUnit * profitMultiplier;
 
         // Formula 5: Net Profit
-        const netProfit = totalSellingPrice - totalCost;
+        // const netProfit = totalSellingPrice - totalCost;
 
         // Log price change if significant
         if (recipe.currentPrice !== sellingPricePerUnit) {

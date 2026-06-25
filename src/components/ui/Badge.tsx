@@ -36,3 +36,5 @@ export const Badge = memo(({ value, label, variant = 'default', className }: Bad
         </View>
     );
 });
+
+Badge.displayName = 'Badge';

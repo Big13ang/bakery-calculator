@@ -29,3 +29,5 @@ export const Header = memo(({ title, onBack, actionButton, className }: HeaderPr
         </View>
     );
 });
+
+Header.displayName = 'Header';

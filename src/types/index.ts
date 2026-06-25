@@ -1,5 +1,5 @@
-export * from '../db/schema';
 import { Ingredient, PriceHistory, Recipe, RecipeIngredient } from '../db/schema';
+export * from '../db/schema';
 
 // Extended type for UI usage that includes the relation
 export interface RecipeWithIngredients extends Recipe {

@@ -3,12 +3,6 @@ import { SQLiteTable } from "drizzle-orm/sqlite-core";
 import * as crypto from 'expo-crypto';
 import { db } from "../db/client";
 
-// Interface for entities that support soft delete & UUIDs
-interface BaseEntity {
-    id: string;
-    deletedAt: Date | null;
-}
-
 export abstract class BaseRepository<T extends SQLiteTable> {
     constructor(protected table: T) { }
 

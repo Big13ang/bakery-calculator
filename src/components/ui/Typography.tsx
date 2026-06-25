@@ -37,3 +37,6 @@ export const Typography = memo(({
         </Text>
     );
 });
+
+Typography.displayName = 'Typography';
+

@@ -158,7 +158,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // --- Data Management Actions ---
 
     const exportData = useCallback(async () => {
-        const { dataService } = require('../services/DataService');
+        const { dataService } = await import('../services/DataService');
         try {
             await dataService.exportData();
             showStatus('success', 'خروجی موفق', 'اطلاعات با موفقیت ذخیره و آماده اشتراک‌گذاری شد.');
@@ -169,7 +169,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }, [showStatus]);
 
     const importData = useCallback(async () => {
-        const { dataService } = require('../services/DataService');
+        const { dataService } = await import('../services/DataService');
         try {
             const success = await dataService.importData();
             if (success) {
@@ -183,12 +183,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }, [refreshData, showStatus]);
 
     const resetAllData = useCallback(async () => {
-        const { dataService } = require('../services/DataService');
+        const { dataService } = await import('../services/DataService');
         try {
             const success = await dataService.resetAllData();
             if (success) {
                 // Re-run migrations to ensure units are seeded
-                const { runMigrations } = require('../db/client');
+                const { runMigrations } = await import('../db/client');
                 await runMigrations();
                 await refreshData();
                 showStatus('success', 'پاکسازی موفق', 'تمام اطلاعات با موفقیت حذف شد.');

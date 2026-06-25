@@ -18,7 +18,7 @@ interface SelectProps {
     className?: string;
 }
 
-export const Select = memo(({ label, value, options, onChange, placeholder = 'انتخاب کنید', className }: SelectProps) => {
+const Select = memo(({ label, value, options, onChange, placeholder = 'انتخاب کنید', className }: SelectProps) => {
     const [visible, setVisible] = useState(false);
 
     const normalizedOptions: Option[] = options.map(opt =>
@@ -96,5 +96,7 @@ export const Select = memo(({ label, value, options, onChange, placeholder = 'ا
         </View>
     );
 });
+
+Select.displayName = 'Select';
 
 export default Select;

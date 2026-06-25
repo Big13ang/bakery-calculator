@@ -99,3 +99,6 @@ export const Button = memo(({
         </Pressable>
     );
 });
+
+Button.displayName = 'Button';
+

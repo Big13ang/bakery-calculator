@@ -21,3 +21,6 @@ export const Card = memo(({ className, variant = 'default', children, ...props }
         </View>
     );
 });
+
+Card.displayName = 'Card';
+

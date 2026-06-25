@@ -27,3 +27,6 @@ export const Input = memo(({ label, containerClassName, className, ...props }: I
         </View>
     );
 });
+
+Input.displayName = 'Input';
+

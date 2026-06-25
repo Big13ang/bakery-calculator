@@ -1,13 +1,13 @@
 import { DATABASE_NAME } from '@/constants/db';
-import * as schema from '@/db/schema';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
-import { openDatabaseSync, SQLiteProvider } from 'expo-sqlite';
+// import * as schema from '@/db/schema';
+// import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { SQLiteProvider } from 'expo-sqlite';
 import { ReactNode, Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 export const SQLiteWrapper = ({ children }: { children: ReactNode }) => {
-    const expoDb = openDatabaseSync(DATABASE_NAME);
-    const db = drizzle(expoDb, { schema });
+    // const expoDb = openDatabaseSync(DATABASE_NAME);
+    // const db = drizzle(expoDb, { schema });
 
     /* 
     try {
@@ -35,7 +35,7 @@ export const SQLiteWrapper = ({ children }: { children: ReactNode }) => {
 
     // Temporarily bypass useMigrations if it's causing syntax errors
     // const { success, error } = useMigrations(db, migrations);
-    const success = true;
+    // const success = true;
     const error = null;
     const isLoading = false;
 
