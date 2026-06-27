@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -30,7 +30,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Cache Bun packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -66,18 +66,18 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-cleanup: on-success
 
       - name: Cache Bun packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
@@ -102,7 +102,7 @@ jobs:
 
       - name: Restore prebuild (android/) cache
         id: prebuild-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: android
           key: prebuild-android-v1-${{ hashFiles('app.config.ts', 'package.json', 'bun.lock', 'src/assets/**') }}
@@ -116,7 +116,7 @@ jobs:
 
       - name: Save prebuild (android/) cache
         if: steps.prebuild-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: android
           key: ${{ steps.prebuild-cache.outputs.cache-primary-key }}
@@ -145,7 +145,7 @@ jobs:
         run: ccache --show-stats --verbose || ccache --show-stats
 
       - name: Upload AAB artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: peymaneh-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
@@ -168,7 +168,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -176,18 +176,18 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-cleanup: on-success
 
       - name: Cache Bun packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
@@ -212,7 +212,7 @@ jobs:
 
       - name: Restore prebuild (android/) cache
         id: prebuild-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: android
           key: prebuild-android-v1-${{ hashFiles('app.config.ts', 'package.json', 'bun.lock', 'src/assets/**') }}
@@ -226,7 +226,7 @@ jobs:
 
       - name: Save prebuild (android/) cache
         if: steps.prebuild-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: android
           key: ${{ steps.prebuild-cache.outputs.cache-primary-key }}
@@ -255,7 +255,7 @@ jobs:
         run: ccache --show-stats --verbose || ccache --show-stats
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: peymaneh-apk
           path: android/app/build/outputs/apk/release/app-release.apk
