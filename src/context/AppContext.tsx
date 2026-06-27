@@ -151,8 +151,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const updateSetting = useCallback(async (key: string, value: string | boolean) => {
         const stringValue = String(value);
-        await settingsService.setSetting(key, stringValue);
+        // Optimistically update state immediately so the UI responds without waiting for the DB
         setSettings(prev => ({ ...prev, [key]: value } as AppSettings));
+        await settingsService.setSetting(key, stringValue);
     }, []);
 
     // --- Data Management Actions ---
