@@ -122,8 +122,10 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                             options={ingredients.map(ing => {
                                 const u = units.find(unit => unit.id === ing.unitId);
                                 return {
-                                    label: `${ing.name} (${u?.name || '-'})`,
-                                    value: ing.id
+                                    label: ing.name,
+                                    value: ing.id,
+                                    price: ing.price,
+                                    unit: u?.name || '-'
                                 };
                             })}
                             onChange={(val: string) => setCurrentIngId(val)}
