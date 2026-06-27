@@ -54,7 +54,7 @@ export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenPr
 
             <ScrollView
                 className="flex-1 px-4"
-                contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
+                contentContainerStyle={{ paddingBottom: 100, paddingTop: 16, flexGrow: 1 }}
                 scrollEventThrottle={16}
                 onScroll={handleScroll}
                 showsVerticalScrollIndicator={false}

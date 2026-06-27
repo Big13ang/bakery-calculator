@@ -2,17 +2,17 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
-    name: "عمو قناد",
-    slug: "amoo-ghanad",
+    name: "پیمانه",
+    slug: "peymaneh",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png",
-    scheme: "bakerycalculator",
+    scheme: "peymaneh",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     ios: {
         supportsTablet: true,
-        bundleIdentifier: "ir.appsaz.amoo.ghanad"
+        bundleIdentifier: "ir.appsaz.peymaneh"
     },
     android: {
         adaptiveIcon: {
@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
-        package: "ir.appsaz.amoo.ghanad",
+        package: "ir.appsaz.peymaneh",
 
     },
     web: {

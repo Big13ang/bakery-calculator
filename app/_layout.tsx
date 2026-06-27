@@ -17,7 +17,7 @@ import { AppProvider } from '@/context/AppContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SQLiteProvider } from 'expo-sqlite';
 
-import { runMigrations } from '@/db/client';
+import { migrateDatabaseFile, runMigrations } from '@/db/client';
 
 // Force RTL for Persian support
 I18nManager.allowRTL(true);
@@ -51,7 +51,7 @@ const CustomDarkTheme: Theme = {
   },
 };
 
-export const DATABASE_NAME = 'bakery_app.db';
+export const DATABASE_NAME = 'peymaneh.db';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -79,6 +79,7 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
+        await migrateDatabaseFile();
         await runMigrations();
         setDbReady(true);
       } catch (e) {

@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Icons } from '../components/ui/Icons';
 import { Typography } from '../components/ui/Typography';
+import { APP_NAME } from '@/constants/app';
 
 export const TermsOfServiceScreen = () => {
     const router = useRouter();
@@ -27,7 +28,7 @@ export const TermsOfServiceScreen = () => {
             <ScrollView className="flex-1 px-4 pb-12" contentContainerStyle={{ paddingBottom: 40 }}>
                 <Card className="mb-6">
                     <Typography variant="body" className="leading-7 text-justify">
-                        استفاده از برنامه «عمو قناد» به معنای پذیرش تمامی موارد ذکر شده در این سند می‌باشد.
+                        استفاده از برنامه «{APP_NAME.fa}» به معنای پذیرش تمامی موارد ذکر شده در این سند می‌باشد.
                     </Typography>
                 </Card>
 

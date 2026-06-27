@@ -174,7 +174,7 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
         with:
-          name: amoo-ghanad-aab
+          name: peymaneh-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           compression-level: 0

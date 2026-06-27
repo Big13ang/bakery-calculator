@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Icons } from '../ui/Icons';
 import { Typography } from '../ui/Typography';
+import { APP_NAME } from '@/constants/app';
 
 interface PolicyAcceptModalProps {
     visible: boolean;
@@ -33,7 +34,7 @@ export const PolicyAcceptModal = ({ visible, onAccept }: PolicyAcceptModalProps)
 
                     <ScrollView className="p-6 max-h-[300px]">
                         <Typography variant="body" className="leading-7 text-justify mb-4">
-                            برای استفاده از برنامه «عمو قناد»، لطفاً موارد زیر را مطالعه فرمایید:
+                            برای استفاده از برنامه «{APP_NAME.fa}»، لطفاً موارد زیر را مطالعه فرمایید:
                         </Typography>
 
                         <View className="gap-y-4 mb-6">

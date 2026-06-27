@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Icons } from '../components/ui/Icons';
 import { Typography } from '../components/ui/Typography';
+import { APP_NAME } from '@/constants/app';
 
 export const PrivacyPolicyScreen = () => {
     const router = useRouter();
@@ -27,7 +28,7 @@ export const PrivacyPolicyScreen = () => {
             <ScrollView className="flex-1 px-4 pb-12" contentContainerStyle={{ paddingBottom: 40 }}>
                 <Card className="mb-6">
                     <Typography variant="body" className="leading-7 text-justify">
-                        ما در برنامه «عمو قناد» به حریم خصوصی شما اهمیت زیادی می‌دهیم. این سند توضیح می‌دهد که داده‌های شما چگونه مدیریت می‌شوند.
+                        ما در برنامه «{APP_NAME.fa}» به حریم خصوصی شما اهمیت زیادی می‌دهیم. این سند توضیح می‌دهد که داده‌های شما چگونه مدیریت می‌شوند.
                     </Typography>
                 </Card>
 

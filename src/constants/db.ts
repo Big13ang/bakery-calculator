@@ -1,1 +1,1 @@
-export const DATABASE_NAME = 'amoo-ghanad-v1';
+export const DATABASE_NAME = 'peymaneh.db';

@@ -1,14 +1,74 @@
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { migrate } from "drizzle-orm/expo-sqlite/migrator";
 import * as crypto from 'expo-crypto';
+import * as FileSystem from 'expo-file-system/legacy';
 import { openDatabaseSync } from "expo-sqlite";
 import migrations from "../drizzle/migrations";
 import * as schema from "./schema";
 
-const dbName = "bakery_app.db";
-export const expoSqlite = openDatabaseSync(dbName);
+const dbName = "peymaneh.db";
 
-export const db = drizzle(expoSqlite, { schema });
+export const migrateDatabaseFile = async () => {
+    const oldDbNames = ["bakery_app.db", "amoo-ghanad-v1"];
+    const sqliteDir = `${FileSystem.documentDirectory}SQLite/`;
+    const newDbUri = `${sqliteDir}${dbName}`;
+
+    try {
+        // Check if new database already exists
+        const newDbInfo = await FileSystem.getInfoAsync(newDbUri);
+        if (newDbInfo.exists) {
+            console.log("New database 'peymaneh.db' already exists, skipping file-level migration.");
+            return;
+        }
+
+        // Ensure SQLite directory exists
+        const sqliteDirInfo = await FileSystem.getInfoAsync(sqliteDir);
+        if (!sqliteDirInfo.exists) {
+            await FileSystem.makeDirectoryAsync(sqliteDir, { intermediates: true });
+        }
+
+        // Attempt to copy from old database names
+        for (const oldDbName of oldDbNames) {
+            const oldDbUri = `${sqliteDir}${oldDbName}`;
+            const oldDbInfo = await FileSystem.getInfoAsync(oldDbUri);
+            if (oldDbInfo.exists) {
+                console.log(`Migrating database file from ${oldDbName} to ${dbName}...`);
+                await FileSystem.copyAsync({
+                    from: oldDbUri,
+                    to: newDbUri
+                });
+                console.log(`Successfully migrated database file to ${dbName}`);
+                return;
+            }
+        }
+        console.log("No legacy database file found to migrate.");
+    } catch (error) {
+        console.error("Error during database file migration:", error);
+    }
+};
+
+let expoSqliteInstance: any = null;
+let dbInstance: any = null;
+
+export const getExpoSqlite = () => {
+    if (!expoSqliteInstance) {
+        expoSqliteInstance = openDatabaseSync(dbName);
+    }
+    return expoSqliteInstance;
+};
+
+const getDb = () => {
+    if (!dbInstance) {
+        dbInstance = drizzle(getExpoSqlite(), { schema });
+    }
+    return dbInstance;
+};
+
+export const db = new Proxy({} as any, {
+    get(target, prop, receiver) {
+        return Reflect.get(getDb(), prop, receiver);
+    }
+});
 
 export const runMigrations = async () => {
     console.log("Running migrations...");

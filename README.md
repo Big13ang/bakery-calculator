@@ -65,7 +65,7 @@ This repository is configured with a GitHub Actions workflow that automatically 
 
 1. Once the workflow run completes, click on it.
 2. Scroll down to the **Artifacts** section.
-3. Click on the **amoo-ghanad-apk** artifact to download the ZIP file.
+3. Click on the **peymaneh-apk** artifact to download the ZIP file.
 4. Extract the ZIP file to get `app-release.apk`.
 
 ### Installing the APK on Android
