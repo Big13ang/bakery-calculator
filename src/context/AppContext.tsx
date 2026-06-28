@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { StatusModal } from '../components/ui/StatusModal';
+import { Toast } from '../components/ui/Toast';
 import { ingredientService } from '../services/IngredientService';
 import { recipeService } from '../services/RecipeService';
 import { settingsService } from '../services/SettingsService';
@@ -46,6 +47,7 @@ interface AppContextType {
     importData: () => Promise<void>;
     resetAllData: () => Promise<void>;
     showStatus: (type: 'success' | 'error', title: string, message: string) => void;
+    showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -62,9 +64,18 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         title: '',
         message: ''
     });
+    const [toast, setToast] = useState<{ visible: boolean, type: 'success' | 'error' | 'warning' | 'info', message: string }>({
+        visible: false,
+        type: 'info',
+        message: ''
+    });
 
     const showStatus = useCallback((type: 'success' | 'error', title: string, message: string) => {
         setStatusModal({ visible: true, type, title, message });
+    }, []);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+        setToast({ visible: true, type, message });
     }, []);
 
     const refreshData = useCallback(async () => {
@@ -237,7 +248,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             exportData,
             importData,
             resetAllData,
-            showStatus
+            showStatus,
+            showToast
         }}>
             {children}
             <StatusModal
@@ -246,6 +258,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 title={statusModal.title}
                 message={statusModal.message}
                 onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
+            <Toast
+                visible={toast.visible}
+                type={toast.type}
+                message={toast.message}
+                onClose={() => setToast(prev => ({ ...prev, visible: false }))}
             />
         </AppContext.Provider>
     );

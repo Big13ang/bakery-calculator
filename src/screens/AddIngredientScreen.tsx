@@ -14,7 +14,7 @@ interface AddIngredientScreenProps {
 }
 
 export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
-    const { addIngredient, units } = useApp();
+    const { addIngredient, units, ingredients, showToast } = useApp();
     const [name, setName] = useState('');
     const [unitId, setUnitId] = useState('');
     const [price, setPrice] = useState('');
@@ -25,10 +25,21 @@ export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
 
     const handleSubmit = useCallback(async () => {
         if (!name || !price || !unitId) return;
+        
+        const trimmedName = name.trim();
+        const isDuplicate = ingredients.some(
+            ing => ing.name.trim().toLowerCase() === trimmedName.toLowerCase()
+        );
+
+        if (isDuplicate) {
+            showToast('ماده اولیه‌ای با این نام قبلاً ثبت شده است.', 'error');
+            return;
+        }
+
         const p = parseFloat(price) || 0;
-        await addIngredient({ name, unitId, price: p } as NewIngredient);
+        await addIngredient({ name: trimmedName, unitId, price: p } as NewIngredient);
         onBack();
-    }, [name, price, unitId, addIngredient, onBack]);
+    }, [name, price, unitId, addIngredient, ingredients, showToast, onBack]);
 
     return (
         <Screen>

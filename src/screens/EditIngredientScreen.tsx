@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -15,19 +15,20 @@ interface EditIngredientScreenProps {
 }
 
 export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScreenProps) => {
-    const { updateIngredient, ingredients, units } = useApp();
+    const { updateIngredient, ingredients, units, showToast } = useApp();
+    const [prevIngredient, setPrevIngredient] = useState<Ingredient | undefined>(undefined);
     const [name, setName] = useState('');
     const [unitId, setUnitId] = useState('');
     const [price, setPrice] = useState('');
 
-    useEffect(() => {
-        const ingredient = ingredients.find(i => i.id === ingredientId);
-        if (ingredient) {
-            setName(ingredient.name);
-            setUnitId(ingredient.unitId);
-            setPrice(ingredient.price.toString());
-        }
-    }, [ingredientId, ingredients]);
+    const ingredient = useMemo(() => ingredients.find(i => i.id === ingredientId), [ingredients, ingredientId]);
+
+    if (ingredient && ingredient !== prevIngredient) {
+        setPrevIngredient(ingredient);
+        setName(ingredient.name);
+        setUnitId(ingredient.unitId);
+        setPrice(ingredient.price.toString());
+    }
 
     const unitOptions = useMemo(() =>
         units.map(u => ({ label: u.name, value: u.id })),
@@ -35,17 +36,28 @@ export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScr
 
     const handleSubmit = useCallback(async () => {
         if (!name || !price || !unitId) return;
+
+        const trimmedName = name.trim();
+        const isDuplicate = ingredients.some(
+            ing => ing.id !== ingredientId && ing.name.trim().toLowerCase() === trimmedName.toLowerCase()
+        );
+
+        if (isDuplicate) {
+            showToast('ماده اولیه‌ای با این نام قبلاً ثبت شده است.', 'error');
+            return;
+        }
+
         const p = parseFloat(price) || 0;
 
         const updates: Partial<Ingredient> = {
-            name,
+            name: trimmedName,
             unitId,
             price: p
         };
 
         await updateIngredient(ingredientId, updates);
         onBack();
-    }, [ingredientId, name, price, unitId, updateIngredient, onBack]);
+    }, [ingredientId, name, price, unitId, updateIngredient, ingredients, showToast, onBack]);
 
     return (
         <Screen>

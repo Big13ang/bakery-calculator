@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TextInput, TouchableOpacity, View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -9,7 +9,7 @@ import { Input } from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { Typography } from '../components/ui/Typography';
 import { useApp } from '../context/AppContext';
-import { RecipeIngredient } from '../types';
+import { RecipeIngredient, RecipeWithIngredients } from '../types';
 import { formatPrice } from '../utils';
 
 interface RecipeFormScreenProps {
@@ -19,6 +19,9 @@ interface RecipeFormScreenProps {
 
 export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps) => {
     const { ingredients, recipes, addRecipe, updateRecipe, calculateDraftCosts, units } = useApp();
+
+    const [prevRecipeId, setPrevRecipeId] = useState<string | null | undefined>(undefined);
+    const [prevRecipe, setPrevRecipe] = useState<RecipeWithIngredients | undefined>(undefined);
 
     const [name, setName] = useState('');
     const [outputCount, setOutputCount] = useState('1');
@@ -30,18 +33,17 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
     const [currentIngId, setCurrentIngId] = useState('');
     const [currentQty, setCurrentQty] = useState('');
 
-    useEffect(() => {
-        if (editRecipeId) {
-            const r = recipes.find(r => r.id === editRecipeId);
-            if (r) {
-                setName(r.name);
-                setOutputCount(r.outputCount.toString());
-                setOutputUnitId(r.outputUnitId || '');
-                setProfitMargin(r.profitMargin.toString());
-                setSelectedIngredients(r.ingredients as any); // Cast for simplicity in draft
-            }
-        }
-    }, [editRecipeId, recipes]);
+    const r = editRecipeId ? recipes.find(rec => rec.id === editRecipeId) : undefined;
+
+    if (editRecipeId !== prevRecipeId || (r && r !== prevRecipe)) {
+        setPrevRecipeId(editRecipeId);
+        setPrevRecipe(r);
+        setName(r?.name ?? '');
+        setOutputCount(r?.outputCount.toString() ?? '1');
+        setOutputUnitId(r?.outputUnitId || '');
+        setProfitMargin(r?.profitMargin.toString() ?? '30');
+        setSelectedIngredients((r?.ingredients as any) ?? []);
+    }
 
     const handleSubmit = async () => {
         if (!name || selectedIngredients.length === 0) return;
