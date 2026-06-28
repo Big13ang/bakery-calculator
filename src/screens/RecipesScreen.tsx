@@ -176,11 +176,11 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                                             <Typography variant="caption" className="font-black">{formatPrice(recipe.totalCost || 0)} تومان</Typography>
                                         </View>
                                         <View className="flex-row justify-between items-center uppercase">
-                                            <Typography variant="micro" className="opacity-60 text-bakery-accent">سود خالص کل:</Typography>
+                                            <Typography variant="micro" className="opacity-80 text-bakery-accent font-bold">سود خالص کل:</Typography>
                                             <Typography variant="caption" className="font-black text-bakery-accent">{formatPrice(recipe.profit || 0)} تومان</Typography>
                                         </View>
                                         <View className="flex-row justify-between items-center opacity-80 uppercase">
-                                            <Typography variant="micro" className="opacity-60">درصد سود:</Typography>
+                                            <Typography variant="micro" className="opacity-70 font-bold">درصد سود:</Typography>
                                             <Typography variant="caption" className="font-bold">{recipe.profitMargin}٪</Typography>
                                         </View>
                                     </View>

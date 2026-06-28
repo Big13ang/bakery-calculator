@@ -47,11 +47,11 @@ export const RecipeSummaryCard = ({ summary, outputUnitId, units, isPending = fa
                         <Typography variant="micro" className="font-black">{formatPrice(summary.totalCost)} تومان</Typography>
                     </View>
                     <View className="flex-row justify-between">
-                        <Typography variant="micro" className="opacity-70">قیمت تمام شده هر {unitName}:</Typography>
+                        <Typography variant="micro" className="opacity-80 font-bold">قیمت تمام شده هر {unitName}:</Typography>
                         <Typography variant="micro" className="font-black">{formatPrice(summary.costPerUnit)} تومان</Typography>
                     </View>
                     <View className="flex-row justify-between">
-                        <Typography variant="micro" className="text-bakery-accent/80">قیمت فروش هر {unitName}:</Typography>
+                        <Typography variant="micro" className="text-bakery-accent font-bold">قیمت فروش هر {unitName}:</Typography>
                         <Typography variant="micro" className="text-bakery-accent/80 font-black">{formatPrice(summary.sellingPrice)} تومان</Typography>
                     </View>
                     <View className="h-px bg-bakery-border opacity-30 my-1" />

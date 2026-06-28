@@ -101,12 +101,12 @@ export const RecipeHistoryScreen = ({ recipeId, onBack }: RecipeHistoryScreenPro
 
                                         <View className="flex-row justify-between items-center pt-3 border-t border-bakery-border border-dashed">
                                             <View className="flex-col gap-1">
-                                                <Typography variant="micro" className="opacity-50 uppercase">قیمت فروش</Typography>
-                                                <Typography variant="h3" className="text-sm">{formatPrice(record.newPrice)} تومان</Typography>
+                                                <Typography variant="micro" className="opacity-80 uppercase font-bold">قیمت فروش</Typography>
+                                                <Typography variant="h3" className="text-sm font-bold">{formatPrice(record.newPrice)} تومان</Typography>
                                             </View>
                                             <View className="flex-col items-end gap-1">
-                                                <Typography variant="micro" className="opacity-50 uppercase">بهای تمام شده</Typography>
-                                                <Typography variant="h3" className="text-sm opacity-60">{formatPrice(record.cost || 0)} تومان</Typography>
+                                                <Typography variant="micro" className="opacity-80 uppercase font-bold">قیمت تمام شده</Typography>
+                                                <Typography variant="h3" className="text-sm opacity-90 font-bold">{formatPrice(record.cost || 0)} تومان</Typography>
                                             </View>
                                         </View>
                                     </Card>
