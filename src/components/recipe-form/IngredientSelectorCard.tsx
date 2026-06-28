@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { TextInput, TouchableOpacity, View } from 'react-native';
 import { RecipeIngredient } from '../../types';
 import { Button } from '../ui/Button';
@@ -19,7 +19,7 @@ interface IngredientSelectorCardProps {
     onRemove: (index: number) => void;
 }
 
-export const IngredientSelectorCard = ({
+export const IngredientSelectorCard = memo(({
     ingredients,
     units,
     selectedIngredients,
@@ -109,5 +109,7 @@ export const IngredientSelectorCard = ({
             />
         </Card>
     );
-};
+});
+
+IngredientSelectorCard.displayName = 'IngredientSelectorCard';
 

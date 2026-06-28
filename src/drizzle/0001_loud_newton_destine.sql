@@ -1,0 +1,1 @@
+ALTER TABLE `recipes` ADD `overhead_cost` real DEFAULT 0 NOT NULL;

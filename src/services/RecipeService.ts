@@ -22,7 +22,8 @@ export class RecipeService {
             const history = await db.select().from(priceHistory).where(eq(priceHistory.entityId, recipe.id));
 
             // Calculate derived metrics
-            const totalCost = ingredients.reduce((sum, ri) => sum + (ri.ingredientPrice || 0) * ri.quantity, 0);
+            const ingredientsCost = ingredients.reduce((sum: number, ri: any) => sum + (ri.ingredientPrice || 0) * ri.quantity, 0);
+            const totalCost = ingredientsCost + (recipe.overheadCost || 0);
             const totalPrice = totalCost * (1 + (recipe.profitMargin || 0) / 100);
             const profit = totalPrice - totalCost;
 
@@ -30,6 +31,7 @@ export class RecipeService {
                 ...recipe,
                 ingredients,
                 priceHistory: history,
+                ingredientsCost,
                 totalCost,
                 totalPrice,
                 profit
@@ -82,18 +84,21 @@ export class RecipeService {
             }
         }
 
+        // Add overhead cost to total cost
+        const totalCostWithOverhead = totalCost + (recipe.overheadCost || 0);
+
         // Calculate Cost Per Unit (Output)
-        const costPerUnit = totalCost / (recipe.outputCount || 1);
+        const costPerUnit = totalCostWithOverhead / (recipe.outputCount || 1);
 
         // Formula 4: Calculation of Total Selling Price
         const profitMultiplier = 1 + (recipe.profitMargin / 100);
-        // const totalSellingPrice = totalCost * profitMultiplier;
+        // const totalSellingPrice = totalCostWithOverhead * profitMultiplier;
 
         // Formula 3: Selling Price per Unit
         const sellingPricePerUnit = costPerUnit * profitMultiplier;
 
         // Formula 5: Net Profit
-        // const netProfit = totalSellingPrice - totalCost;
+        // const netProfit = totalSellingPrice - totalCostWithOverhead;
 
         // Log price change if significant
         if (recipe.currentPrice !== sellingPricePerUnit) {

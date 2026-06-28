@@ -24,3 +24,9 @@ export const toEnglishDigits = (str: string) => {
               .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
 };
 
+export const formatNumberWithCommas = (str: string) => {
+    const cleanStr = toEnglishDigits(str).replace(/[^0-9]/g, '');
+    if (!cleanStr) return '';
+    return Number(cleanStr).toLocaleString('en-US');
+};
+

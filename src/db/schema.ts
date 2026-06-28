@@ -28,6 +28,7 @@ export const recipes = sqliteTable('recipes', {
     outputCount: real('output_count').notNull().default(1),
     outputUnitId: text('output_unit_id').references(() => units.id).notNull(),
     profitMargin: real('profit_margin').notNull().default(0), // as percentage (e.g., 20 for 20%)
+    overheadCost: real('overhead_cost').notNull().default(0), // Overhead cost (water, electricity, gas, worker, etc.)
     currentCost: real('current_cost'), // Cached calculated cost
     currentPrice: real('current_price'), // Cached calculated price
 });

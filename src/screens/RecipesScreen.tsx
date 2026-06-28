@@ -164,8 +164,16 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                                             <Typography variant="caption" className="font-bold">{recipe.outputCount} {units.find(u => u.id === recipe.outputUnitId)?.name || '-'}</Typography>
                                         </View>
                                         <View className="flex-row justify-between items-center opacity-80 uppercase">
-                                            <Typography variant="micro" className="opacity-60">هزینه کل مواد:</Typography>
-                                            <Typography variant="caption" className="font-bold">{formatPrice(recipe.totalCost || 0)} تومان</Typography>
+                                            <Typography variant="micro" className="opacity-60">هزینه مواد اولیه:</Typography>
+                                            <Typography variant="caption" className="font-bold">{formatPrice(recipe.ingredientsCost || 0)} تومان</Typography>
+                                        </View>
+                                        <View className="flex-row justify-between items-center opacity-80 uppercase">
+                                            <Typography variant="micro" className="opacity-60">هزینه های مازاد بر تولید:</Typography>
+                                            <Typography variant="caption" className="font-bold">{formatPrice(recipe.overheadCost || 0)} تومان</Typography>
+                                        </View>
+                                        <View className="flex-row justify-between items-center opacity-80 uppercase border-t border-dashed border-bakery-border pt-2.5 my-0.5">
+                                            <Typography variant="micro" className="opacity-70 font-bold">هزینه کل تولید:</Typography>
+                                            <Typography variant="caption" className="font-black">{formatPrice(recipe.totalCost || 0)} تومان</Typography>
                                         </View>
                                         <View className="flex-row justify-between items-center uppercase">
                                             <Typography variant="micro" className="opacity-60 text-bakery-accent">سود خالص کل:</Typography>

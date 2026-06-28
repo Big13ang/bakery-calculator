@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -10,6 +10,7 @@ import { toEnglishDigits } from '../utils';
 import { IngredientSelectorCard } from '../components/recipe-form/IngredientSelectorCard';
 import { ProductInfoCard } from '../components/recipe-form/ProductInfoCard';
 import { RecipeSummaryCard } from '../components/recipe-form/RecipeSummaryCard';
+import { OverheadCostCard } from '../components/recipe-form/OverheadCostCard';
 import { formReducer } from '../components/recipe-form/reducer';
 import { FormState } from '../components/recipe-form/types';
 
@@ -29,18 +30,19 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
         outputCount: r?.outputCount.toString() ?? '1',
         outputUnitId: r?.outputUnitId || '',
         profitMargin: r?.profitMargin.toString() ?? '30',
+        overheadCost: r?.overheadCost && r.overheadCost !== 0 ? r.overheadCost.toString() : '',
         selectedIngredients: ((r?.ingredients as any) ?? []) as RecipeIngredient[],
         currentIngId: '',
         currentQty: '',
     });
 
-    const { name, outputCount, outputUnitId, profitMargin, selectedIngredients, currentIngId, currentQty } = state;
+    const { name, outputCount, outputUnitId, profitMargin, overheadCost, selectedIngredients, currentIngId, currentQty } = state;
 
-    const handleUpdateField = (key: keyof FormState, value: any) => {
+    const handleUpdateField = useCallback((key: keyof FormState, value: any) => {
         dispatch({ type: 'UPDATE_FIELD', key, value });
-    };
+    }, []);
 
-    const addIngredient = () => {
+    const addIngredient = useCallback(() => {
         if (!currentIngId || !currentQty) return;
         const qtyToAdd = parseFloat(toEnglishDigits(currentQty)) || 0;
 
@@ -55,16 +57,17 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
         }
 
         dispatch({ type: 'ADD_INGREDIENT', ingredientId: currentIngId, quantity: qtyToAdd });
-    };
+    }, [currentIngId, currentQty, selectedIngredients, ingredients, units, showToast]);
 
-    const removeIngredient = (index: number) => {
+    const removeIngredient = useCallback((index: number) => {
         dispatch({ type: 'REMOVE_INGREDIENT', index });
-    };
+    }, []);
 
     const handleSubmit = async () => {
         if (!name.trim() || selectedIngredients.length === 0) return;
         const out = parseFloat(outputCount) || 1;
         const prof = parseFloat(profitMargin) || 0;
+        const overhead = parseFloat(toEnglishDigits(overheadCost)) || 0;
         const payloadIngredients = selectedIngredients.map(i => ({ ingredientId: i.ingredientId, quantity: i.quantity }));
 
         if (editRecipeId) {
@@ -73,6 +76,7 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                 outputCount: out,
                 outputUnitId,
                 profitMargin: prof,
+                overheadCost: overhead,
             }, payloadIngredients);
         } else {
             await addRecipe({
@@ -80,17 +84,38 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                 outputCount: out,
                 outputUnitId,
                 profitMargin: prof,
+                overheadCost: overhead,
                 ingredients: payloadIngredients,
             } as any);
         }
         onBack();
     };
 
-    const summary = calculateDraftCosts({
-        ingredients: selectedIngredients,
-        outputCount: parseFloat(outputCount) || 1,
-        profitMargin: parseFloat(profitMargin) || 0
-    });
+    const [debouncedSummary, setDebouncedSummary] = useState(() => 
+        calculateDraftCosts({
+            ingredients: selectedIngredients,
+            outputCount: parseFloat(outputCount) || 1,
+            profitMargin: parseFloat(profitMargin) || 0,
+            overheadCost: parseFloat(toEnglishDigits(overheadCost)) || 0
+        })
+    );
+    const [isPending, setIsPending] = useState(false);
+
+    useEffect(() => {
+        setIsPending(true);
+        const timer = setTimeout(() => {
+            const result = calculateDraftCosts({
+                ingredients: selectedIngredients,
+                outputCount: parseFloat(outputCount) || 1,
+                profitMargin: parseFloat(profitMargin) || 0,
+                overheadCost: parseFloat(toEnglishDigits(overheadCost)) || 0
+            });
+            setDebouncedSummary(result);
+            setIsPending(false);
+        }, 200); // 200ms debounce for calculations
+
+        return () => clearTimeout(timer);
+    }, [selectedIngredients, outputCount, profitMargin, overheadCost, calculateDraftCosts]);
 
     const isSubmitDisabled = !name.trim() || selectedIngredients.length === 0;
 
@@ -119,11 +144,17 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                     onRemove={removeIngredient}
                 />
 
+                <OverheadCostCard
+                    overheadCost={overheadCost}
+                    onUpdateField={handleUpdateField}
+                />
+
                 {selectedIngredients.length > 0 && (
                     <RecipeSummaryCard
-                        summary={summary}
+                        summary={debouncedSummary}
                         outputUnitId={outputUnitId}
                         units={units}
+                        isPending={isPending}
                     />
                 )}
 

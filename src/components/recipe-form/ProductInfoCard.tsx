@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { View } from 'react-native';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -12,7 +13,7 @@ interface ProductInfoCardProps {
     onUpdateField: (key: 'name' | 'outputCount' | 'outputUnitId' | 'profitMargin', value: string) => void;
 }
 
-export const ProductInfoCard = ({
+export const ProductInfoCard = memo(({
     name,
     outputCount,
     outputUnitId,
@@ -55,4 +56,6 @@ export const ProductInfoCard = ({
             </View>
         </View>
     </Card>
-);
+));
+
+ProductInfoCard.displayName = 'ProductInfoCard';

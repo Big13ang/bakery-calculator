@@ -37,7 +37,7 @@ interface AppContextType {
 
     // Calculation Helper - purely utility, or should likely be in Service?
     // Keeping here for UI convenience but it should probably use Service logic to act on "draft" recipes
-    calculateDraftCosts: (recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => { costPerUnit: number; sellingPrice: number; totalCost: number; totalPrice: number; profit: number };
+    calculateDraftCosts: (recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => { costPerUnit: number; sellingPrice: number; totalCost: number; totalPrice: number; profit: number; ingredientsCost: number; overheadCost: number };
 
     // Settings Actions
     updateSetting: (key: string, value: string | boolean) => Promise<void>;
@@ -214,17 +214,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Helper for UI drafts
     const calculateDraftCosts = useCallback((recipe: Partial<Recipe> & { ingredients?: { ingredientId: string, quantity: number }[] }) => {
-        let totalCost = 0;
+        let ingredientsCost = 0;
         recipe.ingredients?.forEach((ri) => {
             const ing = ingredients.find((i) => i.id === ri.ingredientId);
-            if (ing) totalCost += ri.quantity * ing.price;
+            if (ing) ingredientsCost += ri.quantity * ing.price;
         });
+        const overheadCost = recipe.overheadCost || 0;
+        const totalCost = ingredientsCost + overheadCost;
         const costPerUnit = totalCost / (recipe.outputCount || 1);
         const totalPrice = totalCost * (1 + (recipe.profitMargin || 0) / 100);
         const sellingPrice = totalPrice / (recipe.outputCount || 1); // This is price per unit
         const profit = totalPrice - totalCost;
 
-        return { costPerUnit, sellingPrice, totalCost, totalPrice, profit };
+        return { costPerUnit, sellingPrice, totalCost, totalPrice, profit, ingredientsCost, overheadCost };
     }, [ingredients]);
 
     return (

@@ -5,6 +5,7 @@ export * from '../db/schema';
 export interface RecipeWithIngredients extends Recipe {
     ingredients: RecipeIngredient[];
     priceHistory: PriceHistory[];
+    ingredientsCost?: number;
     totalCost?: number;
     totalPrice?: number;
     profit?: number;

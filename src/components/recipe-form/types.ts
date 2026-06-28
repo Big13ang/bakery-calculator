@@ -5,6 +5,7 @@ export interface FormState {
     outputCount: string;
     outputUnitId: string;
     profitMargin: string;
+    overheadCost: string;
     selectedIngredients: RecipeIngredient[];
     currentIngId: string;
     currentQty: string;
