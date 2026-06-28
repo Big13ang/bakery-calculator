@@ -8,8 +8,10 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Icons } from '../components/ui/Icons';
+import { SearchInput } from '../components/ui/SearchInput';
 import { Typography } from '../components/ui/Typography';
 import { useApp } from '../context/AppContext';
+import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
 import { formatPrice } from '../utils';
 
 if (Platform.OS === 'android') {
@@ -29,10 +31,29 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
     const { recipes, deleteRecipe, ingredients, units } = useApp();
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const isKeyboardVisible = useKeyboardVisible();
 
     const toggleExpand = (id: string) => {
         setExpandedId(expandedId === id ? null : id);
     };
+
+    const filteredRecipes = recipes.filter(recipe => {
+        if (!searchQuery.trim()) return true;
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+        
+        // Search by recipe name
+        const matchName = recipe.name.toLowerCase().includes(normalizedQuery);
+        if (matchName) return true;
+        
+        // Search by ingredient names
+        const matchIngredients = recipe.ingredients.some(ri => {
+            const ing = ingredients.find(ingr => ingr.id === ri.ingredientId);
+            return ing?.name.toLowerCase().includes(normalizedQuery);
+        });
+        
+        return matchIngredients;
+    });
 
     return (
         <Screen scrollable={false} className="p-4 pt-1">
@@ -44,11 +65,18 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                         <Icons.Plus size={20} color="white" />
                     </Button>
                 }
-                className="mb-6"
+                className="mb-4"
+            />
+
+            <SearchInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="جستجو در دستورات پخت و مواد اولیه..."
+                containerClassName="mb-4 mx-1"
             />
 
             <FlatList
-                data={recipes}
+                data={filteredRecipes}
                 keyExtractor={item => item.id}
                 renderItem={({ item: recipe }) => {
                     const isExpanded = expandedId === recipe.id;
@@ -161,15 +189,26 @@ export const RecipesScreen = ({ onBack, onAdd, onEdit, onHistory }: RecipesScree
                     );
                 }}
                 ListEmptyComponent={
-                    <EmptyState
-                        title="هنوز دستور پختی ثبت نشده"
-                        description="پس از ثبت مواد اولیه، می‌توانید دستور پخت خود را اضافه کنید تا قیمت تمام شده و سود آن محاسبه شود."
-                        icon="ChefHat"
-                        actionLabel="ثبت اولین دستور پخت"
-                        onAction={onAdd}
-                    />
+                    recipes.length === 0 ? (
+                        <EmptyState
+                            title="هنوز دستور پختی ثبت نشده"
+                            description="پس از ثبت مواد اولیه، می‌توانید دستور پخت خود را اضافه کنید تا قیمت تمام شده و سود آن محاسبه شود."
+                            icon="ChefHat"
+                            actionLabel="ثبت اولین دستور پخت"
+                            onAction={onAdd}
+                        />
+                    ) : (
+                        <EmptyState
+                            title="نتیجه‌ای یافت نشد"
+                            description="دستور پختی با نام یا مواد اولیه جستجو شده پیدا نشد."
+                            icon="Search"
+                            actionLabel="پاک کردن فیلتر"
+                            onAction={() => setSearchQuery('')}
+                            className={isKeyboardVisible ? "justify-start pt-12" : "justify-center"}
+                        />
+                    )
                 }
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 100, flexGrow: filteredRecipes.length === 0 ? 1 : undefined }}
                 showsVerticalScrollIndicator={false}
                 className="flex-1"
             />

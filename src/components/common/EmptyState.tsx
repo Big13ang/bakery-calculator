@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { cn } from '../../utils';
 import { Button } from '../ui/Button';
 import { Icons } from '../ui/Icons';
 import { Typography } from '../ui/Typography';
@@ -9,13 +10,14 @@ interface EmptyStateProps {
     icon?: keyof typeof Icons;
     actionLabel?: string;
     onAction?: () => void;
+    className?: string;
 }
 
-export const EmptyState = ({ title, description, icon = 'Package', actionLabel, onAction }: EmptyStateProps) => {
+export const EmptyState = ({ title, description, icon = 'Package', actionLabel, onAction, className }: EmptyStateProps) => {
     const IconComponent = Icons[icon];
 
     return (
-        <View className="flex-1 items-center justify-center p-8 gap-8">
+        <View className={cn("flex-1 items-center justify-center p-8 gap-8", className)}>
             {/* Visual Decoration */}
             <View className="relative items-center justify-center">
                 {/* Multi-layered Background */}

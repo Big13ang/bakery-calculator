@@ -52,6 +52,7 @@ export const IngredientSelectorCard = ({
                 </View>
                 <Select
                     value={currentIngId}
+                    searchable
                     options={ingredients.map(ing => {
                         const u = units.find(unit => unit.id === ing.unitId);
                         return {

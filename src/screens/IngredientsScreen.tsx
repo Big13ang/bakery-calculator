@@ -7,8 +7,10 @@ import { Screen } from '../components/layout/Screen';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Icons } from '../components/ui/Icons';
+import { SearchInput } from '../components/ui/SearchInput';
 import { Typography } from '../components/ui/Typography';
 import { useApp } from '../context/AppContext';
+import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
 import { formatPrice } from '../utils';
 
 interface IngredientsScreenProps {
@@ -21,6 +23,14 @@ export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenPr
     const { ingredients, deleteIngredient, units } = useApp();
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const isKeyboardVisible = useKeyboardVisible();
+
+    const filteredIngredients = ingredients.filter(ing => {
+        if (!searchQuery.trim()) return true;
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+        return ing.name.toLowerCase().includes(normalizedQuery);
+    });
 
     const handleDelete = async (id: string) => {
         if (id) {
@@ -52,8 +62,15 @@ export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenPr
                 className="mb-0"
             />
 
+            <SearchInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="جستجو در مواد اولیه..."
+                containerClassName="mb-2 mt-4 mx-4"
+            />
+
             <FlatList
-                data={ingredients}
+                data={filteredIngredients}
                 keyExtractor={item => item.id}
                 renderItem={({ item: ing }) => (
                     <Card className="p-5 flex-row items-center justify-between mb-5">
@@ -80,15 +97,26 @@ export const IngredientsScreen = ({ onBack, onAdd, onEdit }: IngredientsScreenPr
                     </Card>
                 )}
                 ListEmptyComponent={
-                    <EmptyState
-                        title="هنوز ماده اولیه‌ای ثبت نشده"
-                        description="برای محاسبه قیمت تمام شده، ابتدا مواد اولیه (مانند آرد، شکر، تخم مرغ و...) را ثبت کنید."
-                        icon="Package"
-                        actionLabel="ثبت اولین ماده اولیه"
-                        onAction={onAdd}
-                    />
+                    ingredients.length === 0 ? (
+                        <EmptyState
+                            title="هنوز ماده اولیه‌ای ثبت نشده"
+                            description="برای محاسبه قیمت تمام شده، ابتدا مواد اولیه (مانند آرد، شکر، تخم مرغ و...) را ثبت کنید."
+                            icon="Package"
+                            actionLabel="ثبت اولین ماده اولیه"
+                            onAction={onAdd}
+                        />
+                    ) : (
+                        <EmptyState
+                            title="نتیجه‌ای یافت نشد"
+                            description="ماده اولیه‌ای با نام جستجو شده پیدا نشد."
+                            icon="Search"
+                            actionLabel="پاک کردن فیلتر"
+                            onAction={() => setSearchQuery('')}
+                            className={isKeyboardVisible ? "justify-start pt-12" : "justify-center"}
+                        />
+                    )
                 }
-                contentContainerStyle={{ paddingBottom: 100, paddingTop: 16, flexGrow: ingredients.length === 0 ? 1 : undefined }}
+                contentContainerStyle={{ paddingBottom: 100, paddingTop: 16, flexGrow: filteredIngredients.length === 0 ? 1 : undefined }}
                 scrollEventThrottle={16}
                 onScroll={handleScroll}
                 showsVerticalScrollIndicator={false}

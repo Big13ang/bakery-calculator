@@ -10,6 +10,7 @@ import {
     Home,
     Package,
     Plus, // Mapping ChartBar to BarChart to match original names
+    Search,
     Settings,
     Trash,
     TrendingUp,
@@ -33,5 +34,6 @@ export const Icons = {
     X,
     ExternalLink,
     Download,
-    Upload
+    Upload,
+    Search
 };
