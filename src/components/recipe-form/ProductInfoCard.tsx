@@ -8,16 +8,14 @@ interface ProductInfoCardProps {
     name: string;
     outputCount: string;
     outputUnitId: string;
-    profitMargin: string;
     units: { id: string; name: string }[];
-    onUpdateField: (key: 'name' | 'outputCount' | 'outputUnitId' | 'profitMargin', value: string) => void;
+    onUpdateField: (key: 'name' | 'outputCount' | 'outputUnitId', value: string) => void;
 }
 
 export const ProductInfoCard = memo(({
     name,
     outputCount,
     outputUnitId,
-    profitMargin,
     units,
     onUpdateField,
 }: ProductInfoCardProps) => (
@@ -44,14 +42,6 @@ export const ProductInfoCard = memo(({
                     options={units.map(u => ({ label: u.name, value: u.id }))}
                     onChange={(val: string) => onUpdateField('outputUnitId', val)}
                     placeholder="انتخاب"
-                />
-            </View>
-            <View className="flex-1">
-                <Input
-                    label="سود٪"
-                    keyboardType="numeric"
-                    value={profitMargin}
-                    onChangeText={val => onUpdateField('profitMargin', val)}
                 />
             </View>
         </View>

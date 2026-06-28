@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { formatPrice } from '../../utils';
 import { Card } from '../ui/Card';
 import { Icons } from '../ui/Icons';
@@ -24,14 +23,8 @@ interface RecipeSummaryCardProps {
 export const RecipeSummaryCard = ({ summary, outputUnitId, units, isPending = false }: RecipeSummaryCardProps) => {
     const unitName = units.find(u => u.id === outputUnitId)?.name || '-';
 
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            opacity: withTiming(isPending ? 0.55 : 1, { duration: 200 }),
-        };
-    }, [isPending]);
-
     return (
-        <Animated.View style={animatedStyle}>
+        <View>
             <Card className="bg-[#F9F1E5] rounded-2xl gap-4 border-bakery-accent/20">
                 <View className="flex-row items-center gap-2 border-b border-dashed border-bakery-border pb-2">
                     <Icons.TrendingUp size={16} color="#D97706" />
@@ -72,6 +65,6 @@ export const RecipeSummaryCard = ({ summary, outputUnitId, units, isPending = fa
                     </View>
                 </View>
             </Card>
-        </Animated.View>
+        </View>
     );
 };

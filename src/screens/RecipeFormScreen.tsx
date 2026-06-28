@@ -119,6 +119,15 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
 
     const isSubmitDisabled = !name.trim() || selectedIngredients.length === 0;
 
+    const currentTotalCost = (() => {
+        const ingredientsCost = selectedIngredients.reduce((sum, ri) => {
+            const ing = ingredients.find(i => i.id === ri.ingredientId);
+            return sum + (ing ? ri.quantity * ing.price : 0);
+        }, 0);
+        const overhead = parseFloat(toEnglishDigits(overheadCost)) || 0;
+        return ingredientsCost + overhead;
+    })();
+
     return (
         <Screen className="p-4 pt-1">
             <Header title={editRecipeId ? "ویرایش دستور پخت" : "افزودن دستور پخت"} onBack={onBack} />
@@ -128,7 +137,6 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
                     name={name}
                     outputCount={outputCount}
                     outputUnitId={outputUnitId}
-                    profitMargin={profitMargin}
                     units={units}
                     onUpdateField={handleUpdateField}
                 />
@@ -146,6 +154,8 @@ export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps
 
                 <OverheadCostCard
                     overheadCost={overheadCost}
+                    profitMargin={profitMargin}
+                    totalCost={currentTotalCost}
                     onUpdateField={handleUpdateField}
                 />
 
