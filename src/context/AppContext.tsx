@@ -23,7 +23,7 @@ interface AppContextType {
     refreshData: () => Promise<void>;
 
     // Ingredient Actions
-    addIngredient: (data: NewIngredient) => Promise<void>;
+    addIngredient: (data: NewIngredient) => Promise<Ingredient>;
     updateIngredientPrice: (id: string, newPrice: number) => Promise<void>;
     updateIngredient: (id: string, data: Partial<Ingredient>) => Promise<void>;
     deleteIngredient: (id: string) => Promise<void>;
@@ -106,8 +106,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // --- Ingredient Actions ---
 
     const addIngredient = useCallback(async (data: NewIngredient) => {
-        await ingredientService.createIngredient(data);
+        const newIng = await ingredientService.createIngredient(data);
         await refreshData();
+        return newIng;
     }, [refreshData]);
 
     const updateIngredientPrice = useCallback(async (id: string, newPrice: number) => {

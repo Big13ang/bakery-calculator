@@ -4,8 +4,7 @@ import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import Select from '../components/ui/Select';
+import { IngredientFormFields } from '../components/ingredients/IngredientFormFields';
 import { useApp } from '../context/AppContext';
 import { Ingredient } from '../types';
 
@@ -29,7 +28,7 @@ export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScr
         setPrice(ingredient.price.toString());
     }
 
-    const unitOptions = units.map(u => ({ label: u.name, value: u.id }));
+
 
     const handleSubmit = useCallback(async () => {
         if (!name || !price || !unitId) return;
@@ -62,34 +61,15 @@ export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScr
 
             <View className="px-4 pb-24 gap-4">
                 <Card className="gap-5 p-5">
-                    <Input
-                        label="نام ماده اولیه"
-                        placeholder="مثال: آرد نول"
-                        value={name}
-                        onChangeText={setName}
-                        className="text-right"
+                    <IngredientFormFields
+                        name={name}
+                        onChangeName={setName}
+                        unitId={unitId}
+                        onChangeUnitId={setUnitId}
+                        price={price}
+                        onChangePrice={setPrice}
+                        units={units}
                     />
-                    <View className="flex-row gap-4">
-                        <View className="flex-1">
-                            <Select
-                                label="واحد"
-                                value={unitId}
-                                options={unitOptions}
-                                onChange={setUnitId}
-                                placeholder="انتخاب"
-                            />
-                        </View>
-                        <View className="flex-1">
-                            <Input
-                                label="قیمت هر واحد"
-                                placeholder="تومان"
-                                keyboardType="numeric"
-                                value={price}
-                                onChangeText={setPrice}
-                                className="text-right"
-                            />
-                        </View>
-                    </View>
                 </Card>
 
                 <Button
