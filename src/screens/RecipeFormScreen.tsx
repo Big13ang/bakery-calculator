@@ -20,29 +20,26 @@ interface RecipeFormScreenProps {
 export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps) => {
     const { ingredients, recipes, addRecipe, updateRecipe, calculateDraftCosts, units } = useApp();
 
-    const [prevRecipeId, setPrevRecipeId] = useState<string | null | undefined>(undefined);
+    const r = editRecipeId ? recipes.find(rec => rec.id === editRecipeId) : undefined;
     const [prevRecipe, setPrevRecipe] = useState<RecipeWithIngredients | undefined>(undefined);
 
-    const [name, setName] = useState('');
-    const [outputCount, setOutputCount] = useState('1');
-    const [outputUnitId, setOutputUnitId] = useState('');
-    const [profitMargin, setProfitMargin] = useState('30');
-    const [selectedIngredients, setSelectedIngredients] = useState<RecipeIngredient[]>([]);
+    const [name, setName] = useState(r?.name ?? '');
+    const [outputCount, setOutputCount] = useState(r?.outputCount.toString() ?? '1');
+    const [outputUnitId, setOutputUnitId] = useState(r?.outputUnitId || '');
+    const [profitMargin, setProfitMargin] = useState(r?.profitMargin.toString() ?? '30');
+    const [selectedIngredients, setSelectedIngredients] = useState<RecipeIngredient[]>((r?.ingredients as any) ?? []);
 
     // Ingredient adding state
     const [currentIngId, setCurrentIngId] = useState('');
     const [currentQty, setCurrentQty] = useState('');
 
-    const r = editRecipeId ? recipes.find(rec => rec.id === editRecipeId) : undefined;
-
-    if (editRecipeId !== prevRecipeId || (r && r !== prevRecipe)) {
-        setPrevRecipeId(editRecipeId);
+    if (r && r !== prevRecipe) {
         setPrevRecipe(r);
-        setName(r?.name ?? '');
-        setOutputCount(r?.outputCount.toString() ?? '1');
-        setOutputUnitId(r?.outputUnitId || '');
-        setProfitMargin(r?.profitMargin.toString() ?? '30');
-        setSelectedIngredients((r?.ingredients as any) ?? []);
+        setName(r.name);
+        setOutputCount(r.outputCount.toString());
+        setOutputUnitId(r.outputUnitId || '');
+        setProfitMargin(r.profitMargin.toString());
+        setSelectedIngredients((r.ingredients as any) ?? []);
     }
 
     const handleSubmit = async () => {

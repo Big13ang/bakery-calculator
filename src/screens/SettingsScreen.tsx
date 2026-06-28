@@ -26,6 +26,16 @@ export const SettingsScreen = ({ onNavigate }: SettingsScreenProps) => {
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const router = useRouter();
 
+    const [localBusinessName, setLocalBusinessName] = useState(settings.businessName);
+    const [localOwnerName, setLocalOwnerName] = useState(settings.ownerName);
+    const [prevSettings, setPrevSettings] = useState(settings);
+
+    if (settings !== prevSettings) {
+        setPrevSettings(settings);
+        setLocalBusinessName(settings.businessName);
+        setLocalOwnerName(settings.ownerName);
+    }
+
     const handleCleanup = () => {
         setShowResetConfirm(true);
     };
@@ -63,14 +73,24 @@ export const SettingsScreen = ({ onNavigate }: SettingsScreenProps) => {
                         <Input
                             label="نام کسب و کار"
                             placeholder="مثال: نانوایی برکت"
-                            value={settings.businessName}
-                            onChangeText={text => updateSetting('businessName', text)}
+                            value={localBusinessName}
+                            onChangeText={setLocalBusinessName}
+                            onBlur={() => {
+                                if (localBusinessName !== settings.businessName) {
+                                    updateSetting('businessName', localBusinessName);
+                                }
+                            }}
                         />
                         <Input
                             label="نام مالک کسب و کار"
                             placeholder="مثال: محمد محمدی"
-                            value={settings.ownerName}
-                            onChangeText={text => updateSetting('ownerName', text)}
+                            value={localOwnerName}
+                            onChangeText={setLocalOwnerName}
+                            onBlur={() => {
+                                if (localOwnerName !== settings.ownerName) {
+                                    updateSetting('ownerName', localOwnerName);
+                                }
+                            }}
                         />
                     </View>
                 </Card>

@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { PolicyAcceptModal } from '../components/common/PolicyAcceptModal';
 import { Screen } from '../components/layout/Screen';
@@ -19,17 +19,10 @@ interface DashboardScreenProps {
 export const DashboardScreen = ({ onNavigate, onAddIngredient, onAddRecipe }: DashboardScreenProps) => {
     const { recipes, ingredients, settings, updateSetting } = useApp();
 
-    const { totalCost, totalProfit, profitPercentage } = useMemo(() => {
-        const cost = recipes.reduce((acc, r) => acc + (r.totalCost || 0), 0);
-        const revenue = recipes.reduce((acc, r) => acc + (r.totalPrice || 0), 0);
-        const profit = revenue - cost;
-        const percentage = cost > 0 ? (profit / cost) * 100 : 0;
-        return {
-            totalCost: cost,
-            totalProfit: profit,
-            profitPercentage: percentage
-        };
-    }, [recipes]);
+    const totalCost = recipes.reduce((acc, r) => acc + (r.totalCost || 0), 0);
+    const totalRevenue = recipes.reduce((acc, r) => acc + (r.totalPrice || 0), 0);
+    const totalProfit = totalRevenue - totalCost;
+    const profitPercentage = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
 
     const handleAcceptTerms = useCallback(async () => {
         await updateSetting('hasAcceptedTerms', true);

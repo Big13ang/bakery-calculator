@@ -7,6 +7,7 @@ export default function RecipeFormRoute() {
 
     return (
         <RecipeFormScreen
+            key={id || 'new'}
             onBack={() => router.back()}
             editRecipeId={id}
         />

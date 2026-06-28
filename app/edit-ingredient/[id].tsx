@@ -11,6 +11,7 @@ export default function EditIngredientRoute() {
 
     return (
         <EditIngredientScreen
+            key={id}
             ingredientId={id}
             onBack={() => router.back()}
         />

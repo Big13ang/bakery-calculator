@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -19,9 +19,7 @@ export const AddIngredientScreen = ({ onBack }: AddIngredientScreenProps) => {
     const [unitId, setUnitId] = useState('');
     const [price, setPrice] = useState('');
 
-    const unitOptions = useMemo(() =>
-        units.map(u => ({ label: u.name, value: u.id })),
-        [units]);
+    const unitOptions = units.map(u => ({ label: u.name, value: u.id }));
 
     const handleSubmit = useCallback(async () => {
         if (!name || !price || !unitId) return;

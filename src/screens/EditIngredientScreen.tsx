@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
@@ -16,12 +16,11 @@ interface EditIngredientScreenProps {
 
 export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScreenProps) => {
     const { updateIngredient, ingredients, units, showToast } = useApp();
+    const ingredient = ingredients.find(i => i.id === ingredientId);
     const [prevIngredient, setPrevIngredient] = useState<Ingredient | undefined>(undefined);
-    const [name, setName] = useState('');
-    const [unitId, setUnitId] = useState('');
-    const [price, setPrice] = useState('');
-
-    const ingredient = useMemo(() => ingredients.find(i => i.id === ingredientId), [ingredients, ingredientId]);
+    const [name, setName] = useState(ingredient?.name ?? '');
+    const [unitId, setUnitId] = useState(ingredient?.unitId ?? '');
+    const [price, setPrice] = useState(ingredient?.price.toString() ?? '');
 
     if (ingredient && ingredient !== prevIngredient) {
         setPrevIngredient(ingredient);
@@ -30,9 +29,7 @@ export const EditIngredientScreen = ({ ingredientId, onBack }: EditIngredientScr
         setPrice(ingredient.price.toString());
     }
 
-    const unitOptions = useMemo(() =>
-        units.map(u => ({ label: u.name, value: u.id })),
-        [units]);
+    const unitOptions = units.map(u => ({ label: u.name, value: u.id }));
 
     const handleSubmit = useCallback(async () => {
         if (!name || !price || !unitId) return;

@@ -14,6 +14,12 @@ interface RecipeHistoryScreenProps {
     onBack: () => void;
 }
 
+const historyDateFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric'
+});
+
 export const RecipeHistoryScreen = ({ recipeId, onBack }: RecipeHistoryScreenProps) => {
     const { recipes, units } = useApp();
     const recipe = recipes.find(r => r.id === recipeId);
@@ -23,11 +29,7 @@ export const RecipeHistoryScreen = ({ recipeId, onBack }: RecipeHistoryScreenPro
     const chartData = recipe.priceHistory.map(record => {
         const d = new Date(record.createdAt);
         // User requested exact format 29/11/1404
-        const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', {
-            day: 'numeric',
-            month: 'numeric',
-            year: 'numeric'
-        }).formatToParts(d);
+        const parts = historyDateFormatter.formatToParts(d);
 
         const day = parts.find(p => p.type === 'day')?.value;
         const month = parts.find(p => p.type === 'month')?.value;

@@ -61,6 +61,17 @@ SplashScreen.preventAutoHideAsync();
 
 // ... (existing imports)
 
+let dbInitPromise: Promise<void> | null = null;
+function initDb() {
+  if (!dbInitPromise) {
+    dbInitPromise = (async () => {
+      await migrateDatabaseFile();
+      await runMigrations();
+    })();
+  }
+  return dbInitPromise;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
@@ -72,15 +83,14 @@ export default function RootLayout() {
 
   const [dbReady, setDbReady] = useState(false);
 
-  useEffect(() => {
-    if (fontError) throw fontError;
-  }, [fontError]);
+  if (fontError) {
+    throw fontError;
+  }
 
   useEffect(() => {
     async function prepare() {
       try {
-        await migrateDatabaseFile();
-        await runMigrations();
+        await initDb();
         setDbReady(true);
       } catch (e) {
         console.error("Migration failed", e);
