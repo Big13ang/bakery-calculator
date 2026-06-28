@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icons } from './Icons';
 import { Typography } from './Typography';
-import { ToastProps, TOAST_THEMES } from './toast.config';
+import { TOAST_THEMES, ToastProps } from './toast.config';
 
 export const Toast = ({
     visible,
@@ -50,11 +50,14 @@ export const Toast = ({
                 <View className="p-1.5 rounded-lg bg-white/80">
                     <IconComponent size={20} color={theme.iconColor} />
                 </View>
-                <Typography variant="body" className="flex-1 text-right text-stone-800 font-medium">
+                <Typography
+                    variant="body"
+                    className="flex-1 text-stone-800 font-medium"
+                >
                     {message}
                 </Typography>
             </View>
-            <Pressable onPress={onClose} className="p-1 ml-2 opacity-50 active:opacity-100">
+            <Pressable onPress={onClose} className="p-1 mr-2 opacity-50 active:opacity-100">
                 <Icons.X size={16} color="#4A3728" />
             </Pressable>
         </Animated.View>

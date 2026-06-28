@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { TextInput, TouchableOpacity, View } from 'react-native';
+import { useReducer } from 'react';
+import { View } from 'react-native';
 import { Header } from '../components/layout/Header';
 import { Screen } from '../components/layout/Screen';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Icons } from '../components/ui/Icons';
-import { Input } from '../components/ui/Input';
-import Select from '../components/ui/Select';
-import { Typography } from '../components/ui/Typography';
 import { useApp } from '../context/AppContext';
-import { RecipeIngredient, RecipeWithIngredients } from '../types';
-import { formatPrice } from '../utils';
+import { RecipeIngredient } from '../types';
+import { toEnglishDigits } from '../utils';
+
+import { IngredientSelectorCard } from '../components/recipe-form/IngredientSelectorCard';
+import { ProductInfoCard } from '../components/recipe-form/ProductInfoCard';
+import { RecipeSummaryCard } from '../components/recipe-form/RecipeSummaryCard';
+import { formReducer } from '../components/recipe-form/reducer';
+import { FormState } from '../components/recipe-form/types';
 
 interface RecipeFormScreenProps {
     onBack: () => void;
@@ -18,177 +19,126 @@ interface RecipeFormScreenProps {
 }
 
 export const RecipeFormScreen = ({ onBack, editRecipeId }: RecipeFormScreenProps) => {
-    const { ingredients, recipes, addRecipe, updateRecipe, calculateDraftCosts, units } = useApp();
+    const { ingredients, recipes, addRecipe, updateRecipe, calculateDraftCosts, units, showToast } = useApp();
 
     const r = editRecipeId ? recipes.find(rec => rec.id === editRecipeId) : undefined;
-    const [prevRecipe, setPrevRecipe] = useState<RecipeWithIngredients | undefined>(undefined);
 
-    const [name, setName] = useState(r?.name ?? '');
-    const [outputCount, setOutputCount] = useState(r?.outputCount.toString() ?? '1');
-    const [outputUnitId, setOutputUnitId] = useState(r?.outputUnitId || '');
-    const [profitMargin, setProfitMargin] = useState(r?.profitMargin.toString() ?? '30');
-    const [selectedIngredients, setSelectedIngredients] = useState<RecipeIngredient[]>((r?.ingredients as any) ?? []);
+    // Flux pattern state reducer
+    const [state, dispatch] = useReducer(formReducer, {
+        name: r?.name ?? '',
+        outputCount: r?.outputCount.toString() ?? '1',
+        outputUnitId: r?.outputUnitId || '',
+        profitMargin: r?.profitMargin.toString() ?? '30',
+        selectedIngredients: ((r?.ingredients as any) ?? []) as RecipeIngredient[],
+        currentIngId: '',
+        currentQty: '',
+    });
 
-    // Ingredient adding state
-    const [currentIngId, setCurrentIngId] = useState('');
-    const [currentQty, setCurrentQty] = useState('');
+    const { name, outputCount, outputUnitId, profitMargin, selectedIngredients, currentIngId, currentQty } = state;
 
-    if (r && r !== prevRecipe) {
-        setPrevRecipe(r);
-        setName(r.name);
-        setOutputCount(r.outputCount.toString());
-        setOutputUnitId(r.outputUnitId || '');
-        setProfitMargin(r.profitMargin.toString());
-        setSelectedIngredients((r.ingredients as any) ?? []);
-    }
+    const handleUpdateField = (key: keyof FormState, value: any) => {
+        dispatch({ type: 'UPDATE_FIELD', key, value });
+    };
+
+    const addIngredient = () => {
+        if (!currentIngId || !currentQty) return;
+        const qtyToAdd = parseFloat(toEnglishDigits(currentQty)) || 0;
+
+        // Side effect: Toast notification
+        const existingIdx = selectedIngredients.findIndex(item => item.ingredientId === currentIngId);
+        if (existingIdx > -1) {
+            const prevQty = Number(selectedIngredients[existingIdx].quantity) || 0;
+            const newQty = prevQty + qtyToAdd;
+            const ing = ingredients.find(i => i.id === currentIngId);
+            const unitName = units.find(u => u.id === ing?.unitId)?.name || '';
+            showToast(`مقدار ${ing?.name || 'ماده'} با موفقیت ادغام شد و به ${newQty} ${unitName} تغییر یافت.`, 'success');
+        }
+
+        dispatch({ type: 'ADD_INGREDIENT', ingredientId: currentIngId, quantity: qtyToAdd });
+    };
+
+    const removeIngredient = (index: number) => {
+        dispatch({ type: 'REMOVE_INGREDIENT', index });
+    };
 
     const handleSubmit = async () => {
-        if (!name || selectedIngredients.length === 0) return;
+        if (!name.trim() || selectedIngredients.length === 0) return;
         const out = parseFloat(outputCount) || 1;
         const prof = parseFloat(profitMargin) || 0;
+        const payloadIngredients = selectedIngredients.map(i => ({ ingredientId: i.ingredientId, quantity: i.quantity }));
 
         if (editRecipeId) {
             await updateRecipe(editRecipeId, {
-                name,
+                name: name.trim(),
                 outputCount: out,
                 outputUnitId,
                 profitMargin: prof,
-            }, selectedIngredients.map(i => ({ ingredientId: i.ingredientId, quantity: i.quantity })));
+            }, payloadIngredients);
         } else {
             await addRecipe({
-                name,
+                name: name.trim(),
                 outputCount: out,
                 outputUnitId,
                 profitMargin: prof,
-                ingredients: selectedIngredients.map(i => ({ ingredientId: i.ingredientId, quantity: i.quantity })),
+                ingredients: payloadIngredients,
             } as any);
         }
         onBack();
     };
 
-    const addIngredient = () => {
-        if (!currentIngId || !currentQty) return;
-        setSelectedIngredients([...selectedIngredients, { ingredientId: currentIngId, quantity: parseFloat(currentQty) || 0 } as any]);
-        setCurrentIngId('');
-        setCurrentQty('');
-    };
+    const summary = calculateDraftCosts({
+        ingredients: selectedIngredients,
+        outputCount: parseFloat(outputCount) || 1,
+        profitMargin: parseFloat(profitMargin) || 0
+    });
 
-    const removeIngredient = (index: number) => {
-        setSelectedIngredients(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const summary = calculateDraftCosts({ ingredients: selectedIngredients, outputCount: parseFloat(outputCount) || 1, profitMargin: parseFloat(profitMargin) || 0 });
+    const isSubmitDisabled = !name.trim() || selectedIngredients.length === 0;
 
     return (
         <Screen className="p-4 pt-1">
             <Header title={editRecipeId ? "ویرایش دستور پخت" : "افزودن دستور پخت"} onBack={onBack} />
 
             <View className="px-0 pb-24 gap-5">
-                <Card className="rounded-2xl gap-4">
-                    <Input
-                        label="نام محصول نهایی"
-                        placeholder="مثال: کیک شکلاتی"
-                        value={name}
-                        onChangeText={setName}
-                    />
-                    <View className="flex-row gap-2">
-                        <View className="flex-1">
-                            <Input label="وزن تولید" keyboardType="numeric" value={outputCount} onChangeText={setOutputCount} />
-                        </View>
-                        <View className="flex-1 gap-2">
-                            <Select
-                                label="واحد"
-                                value={outputUnitId}
-                                options={units.map(u => ({ label: u.name, value: u.id }))}
-                                onChange={(val: string) => setOutputUnitId(val)}
-                                placeholder="انتخاب"
-                            />
-                        </View>
-                        <View className="flex-1">
-                            <Input label="سود٪" keyboardType="numeric" value={profitMargin} onChangeText={setProfitMargin} />
-                        </View>
-                    </View>
-                </Card>
+                <ProductInfoCard
+                    name={name}
+                    outputCount={outputCount}
+                    outputUnitId={outputUnitId}
+                    profitMargin={profitMargin}
+                    units={units}
+                    onUpdateField={handleUpdateField}
+                />
 
-                <Card className="rounded-2xl gap-4">
-                    <Typography variant="micro" className="opacity-60 uppercase pb-2 border-b border-bakery-border border-dashed">مواد اولیه مصرفی</Typography>
-
-                    {/* Ingredient Selector Area */}
-                    <View className="gap-3">
-                        <Select
-                            label="انتخاب ماده اولیه"
-                            value={currentIngId}
-                            options={ingredients.map(ing => {
-                                const u = units.find(unit => unit.id === ing.unitId);
-                                return {
-                                    label: ing.name,
-                                    value: ing.id,
-                                    price: ing.price,
-                                    unit: u?.name || '-'
-                                };
-                            })}
-                            onChange={(val: string) => setCurrentIngId(val)}
-                            placeholder="انتخاب ماده..."
-                        />
-
-                        <View className="flex-row gap-3">
-                            <TextInput
-                                className="flex-1 p-4 rounded-xl bg-bakery-soft border border-bakery-border font-body text-bakery-text text-xs"
-                                placeholder="مقدار"
-                                keyboardType="numeric"
-                                value={currentQty}
-                                onChangeText={setCurrentQty}
-                            />
-                            <Button variant="primary" size="icon" onPress={addIngredient} className="w-14 h-14 rounded-xl items-center justify-center">
-                                <Icons.Plus size={24} color="white" />
-                            </Button>
-                        </View>
-                    </View>
-
-                    {/* List of selected ingredients */}
-                    <View className="gap-2">
-                        {selectedIngredients.map((item, idx) => {
-                            const ing = ingredients.find(i => i.id === item.ingredientId);
-                            return (
-                                <View key={idx} className="flex-row justify-between items-center bg-bakery-soft p-4 rounded-xl border border-bakery-border">
-                                    <Typography variant="caption" className="font-black">{ing?.name}</Typography>
-                                    <View className="flex-row items-center gap-3">
-                                        <Typography variant="micro" className="opacity-80">{item.quantity} {units.find(u => u.id === ing?.unitId)?.name}</Typography>
-                                        <TouchableOpacity onPress={() => removeIngredient(idx)} className="p-2 bg-red-100 rounded-lg">
-                                            <Icons.Trash size={14} color="#7C2D12" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            );
-                        })}
-                    </View>
-                </Card>
+                <IngredientSelectorCard
+                    ingredients={ingredients}
+                    units={units}
+                    selectedIngredients={selectedIngredients}
+                    currentIngId={currentIngId}
+                    currentQty={currentQty}
+                    onUpdateField={handleUpdateField}
+                    onAdd={addIngredient}
+                    onRemove={removeIngredient}
+                />
 
                 {selectedIngredients.length > 0 && (
-                    <Card className="bg-[#F9F1E5] rounded-2xl gap-4 border-bakery-accent/20">
-                        <View className="flex-row items-center gap-2 border-b border-dashed border-bakery-border pb-2">
-                            <Icons.TrendingUp size={16} color="#D97706" />
-                            <Typography variant="h3" className="text-sm">خلاصه محاسبات</Typography>
-                        </View>
-                        <View className="gap-2.5">
-                            <View className="flex-row justify-between"><Typography variant="micro" className="opacity-70">هزینه کل مواد اولیه:</Typography><Typography variant="micro" className="font-black">{formatPrice(summary.totalCost)} تومان</Typography></View>
-                            <View className="flex-row justify-between"><Typography variant="micro" className="opacity-70">قیمت تمام شده هر {units.find(u => u.id === outputUnitId)?.name || '-'}:</Typography><Typography variant="micro" className="font-black">{formatPrice(summary.costPerUnit)} تومان</Typography></View>
-                            <View className="flex-row justify-between"><Typography variant="micro" className="text-bakery-accent/80">قیمت فروش هر {units.find(u => u.id === outputUnitId)?.name || '-'}:</Typography><Typography variant="micro" className="text-bakery-accent/80 font-black">{formatPrice(summary.sellingPrice)} تومان</Typography></View>
-                            <View className="h-px bg-bakery-border opacity-30 my-1" />
-                            <View className="flex-row justify-between"><Typography variant="body" className="uppercase font-black">قیمت فروش کل:</Typography><Typography variant="body" className="font-black">{formatPrice(summary.totalPrice)} تومان</Typography></View>
-                            <View className="flex-row justify-between bg-bakery-accent/5 p-2 rounded-lg border border-bakery-accent/10"><Typography variant="body" className="text-bakery-accent font-black">سود خالص کل:</Typography><Typography variant="body" className="text-bakery-accent font-black">{formatPrice(summary.profit)} تومان</Typography></View>
-                        </View>
-                    </Card>
+                    <RecipeSummaryCard
+                        summary={summary}
+                        outputUnitId={outputUnitId}
+                        units={units}
+                    />
                 )}
 
                 <Button
                     variant="primary"
                     label={editRecipeId ? "به‌روزرسانی دستور پخت" : "تایید و ثبت نهایی"}
                     onPress={handleSubmit}
-                    disabled={!name || selectedIngredients.length === 0}
-                    className={!name || selectedIngredients.length === 0 ? "opacity-50" : ""}
+                    disabled={isSubmitDisabled}
+                    className={isSubmitDisabled ? "opacity-50" : ""}
                 />
             </View>
         </Screen>
     );
 };
+
+
+
+
