@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react';
 import { TextInput, TouchableOpacity, View } from 'react-native';
 import { RecipeIngredient } from '../../types';
+import { formatPrice } from '../../utils';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Icons } from '../ui/Icons';
@@ -85,12 +86,38 @@ export const IngredientSelectorCard = memo(({
                 {selectedIngredients.map((item, idx) => {
                     const ing = ingredients.find(i => i.id === item.ingredientId);
                     const unitName = units.find(u => u.id === ing?.unitId)?.name || '';
+                    const itemPrice = (item.quantity || 0) * (ing?.price || 0);
                     return (
-                        <View key={idx} className="flex-row justify-between items-center bg-bakery-soft p-4 rounded-xl border border-bakery-border">
-                            <Typography variant="caption" className="font-black">{ing?.name}</Typography>
+                        <View
+                            key={idx}
+                            className="flex-row justify-between items-center bg-bakery-soft p-4 rounded-xl border border-bakery-border"
+                            style={{ direction: 'rtl' }}
+                        >
+                            {/* Right side: Ingredient name and unit rate */}
+                            <View className="flex-col gap-0.5">
+                                <Typography variant="caption" className="font-black text-left">
+                                    {ing?.name || 'ماده نامشخص'}
+                                </Typography>
+                                <Typography variant="micro" className="opacity-55 text-left text-[10px]">
+                                    {formatPrice(ing?.price || 0)} تومان / {unitName || '-'}
+                                </Typography>
+                            </View>
+
+                            {/* Left side: Quantity/Total and Delete */}
                             <View className="flex-row items-center gap-3">
-                                <Typography variant="micro" className="opacity-80">{item.quantity} {unitName}</Typography>
-                                <TouchableOpacity onPress={() => onRemove(idx)} className="p-2 bg-red-100 rounded-lg">
+                                <View className="gap-0.5">
+                                    <Typography variant="micro" className="opacity-75 text-right text-[10px]">
+                                        {item.quantity} {unitName}
+                                    </Typography>
+                                    <Typography variant="caption" className="font-bold text-bakery-accent text-right">
+                                        {formatPrice(itemPrice)} تومان
+                                    </Typography>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => onRemove(idx)}
+                                    className="p-2.5 bg-red-50/80 active:bg-red-100 rounded-xl border border-red-100/50 active:scale-95"
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
                                     <Icons.Trash size={14} color="#7C2D12" />
                                 </TouchableOpacity>
                             </View>
